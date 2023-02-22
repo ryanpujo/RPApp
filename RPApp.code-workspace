@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "user-service"
+		},
+		{
+			"path": "broker-service"
+		},
+		{
+			"path": "project"
+		}
+	],
+	"settings": {}
+}

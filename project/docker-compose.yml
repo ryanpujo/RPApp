@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  user-service:
+    build:
+      context: ./../user-service
+      dockerfile: user-service.dockerfile
+    ports:
+      - 4000:8000
+    environment:
+      GRPC_PORT: 8000
+      DSN: host=postgres port=5432 user=ryanpujo password=oke dbname=users sslmode=disable timezone=UTC connect_timeout=20
+    volumes:
+      - ./../user-service:/app
+
+  postgres:
+    image: postgres:15.2-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ryanpujo
+      POSTGRES_PASSWORD: oke
+      POSTGRES_DB: users
+    ports:
+      - 5432:5432
+    volumes:
+      - ./../user-service/sql/user.sql:/docker-entrypoint-initdb.d/create_tables.sql
