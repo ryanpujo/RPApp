@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/spriigan/RPMedia/infrastructure"
-	"github.com/spriigan/RPMedia/registry"
+	"github.com/spriigan/RPApp/infrastructure"
+	"github.com/spriigan/RPApp/registry"
 )
 
 func main() {

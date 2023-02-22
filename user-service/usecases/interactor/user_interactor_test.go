@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spriigan/RPMedia/domain"
-	"github.com/spriigan/RPMedia/usecases/interactor"
+	"github.com/spriigan/RPApp/domain"
+	"github.com/spriigan/RPApp/usecases/interactor"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )

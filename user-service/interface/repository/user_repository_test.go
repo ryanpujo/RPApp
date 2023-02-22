@@ -12,9 +12,9 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/spriigan/RPMedia/domain"
-	repos "github.com/spriigan/RPMedia/interface/repository"
-	"github.com/spriigan/RPMedia/usecases/repository"
+	"github.com/spriigan/RPApp/domain"
+	repos "github.com/spriigan/RPApp/interface/repository"
+	"github.com/spriigan/RPApp/usecases/repository"
 	"github.com/stretchr/testify/require"
 )
 

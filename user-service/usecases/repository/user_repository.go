@@ -1,6 +1,6 @@
 package repository
 
-import "github.com/spriigan/RPMedia/domain"
+import "github.com/spriigan/RPApp/domain"
 
 type UserRepository interface {
 	Create(user *domain.UserPayload) (int, error)

@@ -1,8 +1,8 @@
 package interactor
 
 import (
-	"github.com/spriigan/RPMedia/domain"
-	"github.com/spriigan/RPMedia/usecases/repository"
+	"github.com/spriigan/RPApp/domain"
+	"github.com/spriigan/RPApp/usecases/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 

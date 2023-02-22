@@ -3,11 +3,11 @@ package registry
 import (
 	"database/sql"
 
-	"github.com/spriigan/RPMedia/interface/controller"
-	repo "github.com/spriigan/RPMedia/interface/repository"
-	"github.com/spriigan/RPMedia/usecases/interactor"
-	"github.com/spriigan/RPMedia/usecases/repository"
-	"github.com/spriigan/RPMedia/user-proto/grpc/models"
+	"github.com/spriigan/RPApp/interface/controller"
+	repo "github.com/spriigan/RPApp/interface/repository"
+	"github.com/spriigan/RPApp/usecases/interactor"
+	"github.com/spriigan/RPApp/usecases/repository"
+	"github.com/spriigan/RPApp/user-proto/grpc/models"
 )
 
 type Registry interface {

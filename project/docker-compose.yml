@@ -12,6 +12,17 @@ services:
       DSN: host=postgres port=5432 user=ryanpujo password=oke dbname=users sslmode=disable timezone=UTC connect_timeout=20
     volumes:
       - ./../user-service:/app
+  
+  broker-service:
+    build:
+      context: ./../broker-service
+      dockerfile: broker-service.dockerfile
+    ports:
+      - 4001:8000
+    environment:
+      PORT: 8000
+    volumes:
+      - ./../broker-service:/app
 
   postgres:
     image: postgres:15.2-alpine

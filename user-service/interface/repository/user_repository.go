@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/spriigan/RPMedia/domain"
+	"github.com/spriigan/RPApp/domain"
 )
 
 type userRepository struct {

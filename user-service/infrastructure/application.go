@@ -11,17 +11,17 @@ import (
 	_ "github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/spriigan/RPMedia/user-proto/grpc/models"
+	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"google.golang.org/grpc"
 )
 
 type application struct {
-	Congfig congfig
+	Config config
 }
 
 func Application() application {
 	return application{
-		Congfig: congfig{
+		Config: config{
 			GRPC_PORT: os.Getenv("GRPC_PORT"),
 			DSN:       os.Getenv("DSN"),
 		},
@@ -29,7 +29,7 @@ func Application() application {
 }
 
 func (app *application) StartGrpcServer(server models.UserServiceServer) (func(), error) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", app.Congfig.GRPC_PORT))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", app.Config.GRPC_PORT))
 	if err != nil {
 		return func() {
 			lis.Close()
@@ -69,7 +69,7 @@ func (app *application) ConnectToDB() *sql.DB {
 	count := 0
 
 	for db == nil {
-		db, err = openDB(app.Congfig.DSN)
+		db, err = openDB(app.Config.DSN)
 		if err != nil {
 			log.Println("postgres is not ready yet:", err)
 		}
