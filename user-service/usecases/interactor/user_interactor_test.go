@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spriigan/RPApp/domain"
 	"github.com/spriigan/RPApp/usecases/interactor"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"github.com/stretchr/testify/mock"
@@ -44,7 +43,7 @@ func (in *mockUserRepo) DeleteByUsername(username string) error {
 	return args.Error(0)
 }
 
-func (in *mockUserRepo) Update(user domain.UserPayload) error {
+func (in *mockUserRepo) Update(user *models.UserPayload) error {
 	args := in.Called()
 	return args.Error(0)
 }
@@ -236,7 +235,7 @@ func TestUpdate(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			err := userInteractor.Update(domain.UserPayload{})
+			err := userInteractor.Update(&models.UserPayload{})
 
 			v.assert(t, err)
 		})

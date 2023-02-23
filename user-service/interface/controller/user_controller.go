@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/spriigan/RPApp/domain"
 	"github.com/spriigan/RPApp/interface/repository"
 	"github.com/spriigan/RPApp/usecases/interactor"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
@@ -67,16 +66,7 @@ func (us *userServer) DeleteByUsername(ctx context.Context, username *models.Use
 }
 
 func (us *userServer) Update(ctx context.Context, payload *models.UserPayload) (*emptypb.Empty, error) {
-	input := payload.GetBio()
-	user := domain.UserPayload{
-		Id:       int(input.GetId()),
-		Fname:    input.GetFname(),
-		Lname:    input.GetLname(),
-		Username: input.GetUsername(),
-		Email:    input.GetEmail(),
-		Password: payload.GetPassword(),
-	}
-	err := us.interactor.Update(user)
+	err := us.interactor.Update(payload)
 	if err != nil {
 		return &emptypb.Empty{}, status.Error(codes.FailedPrecondition, err.Error())
 	}

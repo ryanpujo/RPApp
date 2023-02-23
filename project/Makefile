@@ -25,3 +25,7 @@ broker_binary:
 proto_user:
 	cd ../user-service && protoc --go_out=user-proto --proto_path=proto proto/*.proto --go-grpc_out=user-proto
 	cd ../broker-service && protoc --go_out=user/user-proto --proto_path=user/proto user/proto/*.proto --go-grpc_out=user/user-proto
+
+test:
+	cd ../user-service && go test ./interface/repository ./interface/controller ./usecases/interactor --coverprofile=cover.out
+	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out

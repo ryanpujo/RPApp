@@ -6,7 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/spriigan/RPApp/domain"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 )
 
@@ -109,10 +108,11 @@ func (repo *userRepository) DeleteByUsername(username string) error {
 	return nil
 }
 
-func (repo *userRepository) Update(user domain.UserPayload) error {
+func (repo *userRepository) Update(user *models.UserPayload) error {
 	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
 	defer cancel()
 
+	payload := user.GetBio()
 	statement := `update users set
 			first_name=$1,
 			last_name=$2,
@@ -123,12 +123,12 @@ func (repo *userRepository) Update(user domain.UserPayload) error {
 	`
 
 	_, err := repo.db.ExecContext(ctx, statement,
-		user.Fname,
-		user.Lname,
-		user.Username,
+		payload.Fname,
+		payload.Lname,
+		payload.Username,
 		user.Password,
-		user.Email,
-		user.Id,
+		payload.Email,
+		payload.Id,
 	)
 	if err != nil {
 		return err

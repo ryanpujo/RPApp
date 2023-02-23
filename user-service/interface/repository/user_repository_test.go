@@ -12,7 +12,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
-	"github.com/spriigan/RPApp/domain"
 	repos "github.com/spriigan/RPApp/interface/repository"
 	"github.com/spriigan/RPApp/usecases/repository"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
@@ -166,12 +165,14 @@ func TestDeleteByUsername(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	payload := domain.UserPayload{
-		Id:       1,
-		Fname:    "ryan",
-		Lname:    "conor",
-		Username: "ryanpujo",
-		Email:    "ryanpujo@gmail.com",
+	payload := &models.UserPayload{
+		Bio: &models.UserBio{
+			Id:       1,
+			Fname:    "ryan",
+			Lname:    "pujo",
+			Username: "ryanpujo",
+			Email:    "ryanpujo@gmail.com",
+		},
 		Password: "oke",
 	}
 	err := userRepo.Update(payload)
@@ -179,5 +180,5 @@ func TestUpdate(t *testing.T) {
 	user, err := userRepo.FindByUsername("ryanpujo")
 	require.NoError(t, err)
 	require.NotNil(t, user)
-	require.Equal(t, payload.Lname, user.Lname)
+	require.Equal(t, payload.Bio.Lname, user.Lname)
 }

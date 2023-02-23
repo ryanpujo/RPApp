@@ -1,7 +1,6 @@
 package interactor
 
 import (
-	"github.com/spriigan/RPApp/domain"
 	"github.com/spriigan/RPApp/usecases/repository"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"golang.org/x/crypto/bcrypt"
@@ -12,7 +11,7 @@ type UserInteractor interface {
 	FindUsers() (*models.Users, error)
 	FindByUsername(username string) (*models.User, error)
 	DeleteByUsername(username string) error
-	Update(user domain.UserPayload) error
+	Update(user *models.UserPayload) error
 }
 
 type userInteractor struct {
@@ -57,7 +56,7 @@ func (in *userInteractor) DeleteByUsername(username string) error {
 	return nil
 }
 
-func (in *userInteractor) Update(user domain.UserPayload) error {
+func (in *userInteractor) Update(user *models.UserPayload) error {
 	err := in.Repo.Update(user)
 	if err != nil {
 		return err

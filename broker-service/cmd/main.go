@@ -3,10 +3,10 @@ package main
 import (
 	"log"
 
-	"github.com/spriigan/broker/user/infrastructure"
-	"github.com/spriigan/broker/user/infrastructure/grpc/client"
-	"github.com/spriigan/broker/user/infrastructure/router"
-	"github.com/spriigan/broker/user/interface/controller"
+	"github.com/spriigan/broker/infrastructure"
+	"github.com/spriigan/broker/infrastructure/grpc/client"
+	"github.com/spriigan/broker/infrastructure/router"
+	"github.com/spriigan/broker/registry"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -19,7 +19,8 @@ func main() {
 		log.Fatal(err)
 	}
 	defer close()
-	if err := app.Serve(router.Route(controller.NewUserController(client))); err != nil {
+	register := registry.New(client)
+	if err := app.Serve(router.Route(register.NewAppController())); err != nil {
 		log.Fatal(err)
 	}
 }

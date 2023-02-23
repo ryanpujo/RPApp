@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spriigan/RPApp/domain"
 	"github.com/spriigan/RPApp/interface/controller"
 	"github.com/spriigan/RPApp/interface/repository"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
@@ -53,7 +52,7 @@ func (in *interactorMock) DeleteByUsername(username string) error {
 	return args.Error(0)
 }
 
-func (in *interactorMock) Update(user domain.UserPayload) error {
+func (in *interactorMock) Update(user *models.UserPayload) error {
 	args := in.Called(user)
 	return args.Error(0)
 }
