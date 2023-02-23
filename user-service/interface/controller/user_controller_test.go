@@ -27,25 +27,25 @@ type interactorMock struct {
 	mock.Mock
 }
 
-func (in *interactorMock) Create(payload *domain.UserPayload) (int, error) {
+func (in *interactorMock) Create(payload *models.UserPayload) (int, error) {
 	args := in.Called(payload)
 	return args.Int(0), args.Error(1)
 }
 
-func (in *interactorMock) FindUsers() ([]*domain.User, error) {
+func (in *interactorMock) FindUsers() (*models.Users, error) {
 	args := in.Called()
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*domain.User), args.Error(1)
+	return args.Get(0).(*models.Users), args.Error(1)
 }
 
-func (in *interactorMock) FindByUsername(username string) (*domain.User, error) {
+func (in *interactorMock) FindByUsername(username string) (*models.User, error) {
 	args := in.Called(username)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*domain.User), args.Error(1)
+	return args.Get(0).(*models.User), args.Error(1)
 }
 
 func (in *interactorMock) DeleteByUsername(username string) error {
@@ -126,7 +126,7 @@ func TestRegisterUser(t *testing.T) {
 }
 
 func TestFindByUsername(t *testing.T) {
-	user := &domain.User{
+	user := &models.User{
 		Fname: "dabi",
 	}
 	testTable := map[string]struct {
@@ -177,24 +177,19 @@ func TestFindByUsername(t *testing.T) {
 }
 
 func TestFindUsers(t *testing.T) {
-	arg := []*domain.User{
-		{},
-		{},
-		{},
-	}
 	bio := []*models.UserBio{
 		{},
 		{},
 		{},
 	}
-	users := models.Users{User: bio}
+	users := &models.Users{User: bio}
 	testTable := map[string]struct {
 		arrange func(t *testing.T)
 		assert  func(t *testing.T, actual *models.Users, err error)
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				interactor.On("FindUsers").Return(arg, nil).Once()
+				interactor.On("FindUsers").Return(users, nil).Once()
 			},
 			assert: func(t *testing.T, actual *models.Users, err error) {
 				require.NoError(t, err)

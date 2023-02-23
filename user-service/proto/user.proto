@@ -14,6 +14,15 @@ message UserBio {
   string Email =5;
 }
 
+message User {
+  int64 Id =1;
+  string Fname =2;
+  string Lname =3;
+  string Username =4;
+  string Email =5;
+  string password = 6;
+}
+
 message UserPayload {
   UserBio bio = 1;
   string password =2;

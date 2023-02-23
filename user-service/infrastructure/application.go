@@ -63,7 +63,7 @@ func openDB(dsn string) (*sql.DB, error) {
 }
 
 func (app *application) ConnectToDB() *sql.DB {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
 	var db *sql.DB
 	var err error
 	count := 0

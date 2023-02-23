@@ -22,17 +22,8 @@ func NewUserServer(i interactor.UserInteractor) *userServer {
 	return &userServer{interactor: i}
 }
 
-func (us *userServer) RegisterUser(ctx context.Context, req *models.UserPayload) (*models.UserId, error) {
-	bio := req.GetBio()
-	newUser := domain.UserPayload{
-		Fname:    bio.Fname,
-		Lname:    bio.Lname,
-		Username: bio.Username,
-		Password: req.GetPassword(),
-		Email:    bio.Email,
-	}
-
-	id, err := us.interactor.Create(&newUser)
+func (us *userServer) RegisterUser(ctx context.Context, payload *models.UserPayload) (*models.UserId, error) {
+	id, err := us.interactor.Create(payload)
 	if err != nil {
 		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
@@ -49,7 +40,7 @@ func (us *userServer) FindByUsername(ctx context.Context, username *models.Usern
 		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
 	bio := models.UserBio{
-		Id:       int64(foundUser.Id),
+		Id:       foundUser.Id,
 		Fname:    foundUser.Fname,
 		Lname:    foundUser.Lname,
 		Username: foundUser.Username,
@@ -63,20 +54,8 @@ func (us *userServer) FindUsers(context.Context, *emptypb.Empty) (*models.Users,
 	if err != nil {
 		return nil, err
 	}
-	userBios := make([]*models.UserBio, 0, len(users))
 
-	for _, v := range users {
-		bio := models.UserBio{
-			Fname:    v.Fname,
-			Lname:    v.Lname,
-			Username: v.Username,
-			Email:    v.Email,
-			Id:       int64(v.Id),
-		}
-		userBios = append(userBios, &bio)
-	}
-
-	return &models.Users{User: userBios}, nil
+	return users, nil
 }
 
 func (us *userServer) DeleteByUsername(ctx context.Context, username *models.Username) (*emptypb.Empty, error) {

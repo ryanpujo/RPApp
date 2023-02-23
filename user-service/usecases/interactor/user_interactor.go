@@ -3,13 +3,14 @@ package interactor
 import (
 	"github.com/spriigan/RPApp/domain"
 	"github.com/spriigan/RPApp/usecases/repository"
+	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserInteractor interface {
-	Create(user *domain.UserPayload) (int, error)
-	FindUsers() ([]*domain.User, error)
-	FindByUsername(username string) (*domain.User, error)
+	Create(user *models.UserPayload) (int, error)
+	FindUsers() (*models.Users, error)
+	FindByUsername(username string) (*models.User, error)
 	DeleteByUsername(username string) error
 	Update(user domain.UserPayload) error
 }
@@ -22,7 +23,7 @@ func NewUserInteractor(repo repository.UserRepository) *userInteractor {
 	return &userInteractor{Repo: repo}
 }
 
-func (in *userInteractor) Create(user *domain.UserPayload) (int, error) {
+func (in *userInteractor) Create(user *models.UserPayload) (int, error) {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	user.Password = string(hash)
 	id, err := in.Repo.Create(user)
@@ -32,7 +33,7 @@ func (in *userInteractor) Create(user *domain.UserPayload) (int, error) {
 	return id, nil
 }
 
-func (in *userInteractor) FindUsers() ([]*domain.User, error) {
+func (in *userInteractor) FindUsers() (*models.Users, error) {
 	users, err := in.Repo.FindUsers()
 	if err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func (in *userInteractor) FindUsers() ([]*domain.User, error) {
 	return users, nil
 }
 
-func (in *userInteractor) FindByUsername(username string) (*domain.User, error) {
+func (in *userInteractor) FindByUsername(username string) (*models.User, error) {
 	user, err := in.Repo.FindByUsername(username)
 	if err != nil {
 		return nil, err

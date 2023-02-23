@@ -15,6 +15,7 @@ import (
 	"github.com/spriigan/RPApp/domain"
 	repos "github.com/spriigan/RPApp/interface/repository"
 	"github.com/spriigan/RPApp/usecases/repository"
+	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"github.com/stretchr/testify/require"
 )
 
@@ -110,11 +111,13 @@ func TestPingDb(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	payload := domain.UserPayload{
-		Fname:    "ryan",
-		Lname:    "pujo",
-		Username: "ryanpujo",
-		Email:    "ryanpujo@gmail.com",
+	payload := models.UserPayload{
+		Bio: &models.UserBio{
+			Fname:    "ryan",
+			Lname:    "pujo",
+			Username: "ryanpujo",
+			Email:    "ryanpujo@gmail.com",
+		},
 		Password: "oke",
 	}
 
@@ -124,11 +127,13 @@ func TestCreate(t *testing.T) {
 }
 
 func TestFindUsers(t *testing.T) {
-	payload := domain.UserPayload{
-		Fname:    "ryan",
-		Lname:    "pujo",
-		Username: "ryanpujo1",
-		Email:    "ryanpujo1@gmail.com",
+	payload := models.UserPayload{
+		Bio: &models.UserBio{
+			Fname:    "ryan",
+			Lname:    "pujo",
+			Username: "ryanpujo1",
+			Email:    "ryanpujo1@gmail.com",
+		},
 		Password: "oke",
 	}
 	_, err := userRepo.Create(&payload)
@@ -137,7 +142,7 @@ func TestFindUsers(t *testing.T) {
 	actual, err := userRepo.FindUsers()
 	require.NoError(t, err)
 	require.NotEmpty(t, actual)
-	require.Equal(t, 2, len(actual))
+	require.Equal(t, 2, len(actual.User))
 }
 
 func TestFindByUsername(t *testing.T) {

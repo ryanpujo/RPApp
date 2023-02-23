@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spriigan/RPApp/domain"
+	"github.com/spriigan/RPApp/user-proto/grpc/models"
 )
 
 type userRepository struct {
@@ -19,7 +20,7 @@ func NewUserRepository(db *sql.DB) *userRepository {
 
 var ErrNoUserFound = errors.New("user is not registered yet")
 
-func (repo *userRepository) Create(user *domain.UserPayload) (int, error) {
+func (repo *userRepository) Create(user *models.UserPayload) (int, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
 	defer cancel()
 
@@ -27,11 +28,11 @@ func (repo *userRepository) Create(user *domain.UserPayload) (int, error) {
 	var id int
 
 	err := repo.db.QueryRowContext(ctx, statement,
-		user.Fname,
-		user.Lname,
-		user.Username,
+		user.Bio.Fname,
+		user.Bio.Lname,
+		user.Bio.Username,
 		user.Password,
-		user.Email,
+		user.Bio.Email,
 	).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -39,43 +40,44 @@ func (repo *userRepository) Create(user *domain.UserPayload) (int, error) {
 	return id, nil
 }
 
-func (repo *userRepository) FindUsers() ([]*domain.User, error) {
+func (repo *userRepository) FindUsers() (*models.Users, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
 	defer cancel()
 
-	statement := `select id, first_name, last_name, username, password, email from users order by first_name`
+	statement := `select id, first_name, last_name, username, email from users order by first_name`
 
 	rows, err := repo.db.QueryContext(ctx, statement)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var users []*domain.User
+	users := models.Users{
+		User: make([]*models.UserBio, 0, 15),
+	}
 
 	for rows.Next() {
-		var user domain.User
+		var bio models.UserBio
 		err = rows.Scan(
-			&user.Id,
-			&user.Fname,
-			&user.Lname,
-			&user.Username,
-			&user.Password,
-			&user.Email,
+			&bio.Id,
+			&bio.Fname,
+			&bio.Lname,
+			&bio.Username,
+			&bio.Email,
 		)
 		if err != nil {
 			return nil, err
 		}
-		users = append(users, &user)
+		users.User = append(users.User, &bio)
 	}
-	return users, nil
+	return &users, nil
 }
 
-func (repo *userRepository) FindByUsername(username string) (*domain.User, error) {
+func (repo *userRepository) FindByUsername(username string) (*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
 	defer cancel()
 
 	statement := `select id, first_name, last_name, username, password, email from users where username=$1`
-	var user domain.User
+	var user models.User
 
 	err := repo.db.QueryRowContext(ctx, statement, username).Scan(
 		&user.Id,
