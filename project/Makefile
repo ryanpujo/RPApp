@@ -27,8 +27,11 @@ proto_user:
 	cd ../broker-service && protoc --go_out=user/user-proto --proto_path=user/proto user/proto/*.proto --go-grpc_out=user/user-proto
 
 test:
+	@echo "running test for user service"
 	cd ../user-service && go test ./interface/repository ./interface/controller ./usecases/interactor --coverprofile=cover.out
+	@echo "running test for broker service"
 	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out
+	@echo "finished running all test"
 
 coverage_show:
 	cd ../user-service && go tool cover -html=cover.out
