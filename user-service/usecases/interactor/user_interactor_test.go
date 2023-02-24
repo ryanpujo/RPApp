@@ -1,9 +1,11 @@
 package interactor_test
 
 import (
+	"context"
 	"errors"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/spriigan/RPApp/usecases/interactor"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
@@ -15,12 +17,12 @@ type mockUserRepo struct {
 	mock.Mock
 }
 
-func (in *mockUserRepo) Create(user *models.UserPayload) (int, error) {
+func (in *mockUserRepo) Create(ctx context.Context, user *models.UserPayload) (int, error) {
 	args := in.Called(user)
 	return args.Int(0), args.Error(1)
 }
 
-func (in *mockUserRepo) FindUsers() (*models.Users, error) {
+func (in *mockUserRepo) FindUsers(ctx context.Context) (*models.Users, error) {
 	args := in.Called()
 	arg1 := args.Get(0)
 	if arg1 == nil {
@@ -29,7 +31,7 @@ func (in *mockUserRepo) FindUsers() (*models.Users, error) {
 	return args.Get(0).(*models.Users), args.Error(1)
 }
 
-func (in *mockUserRepo) FindByUsername(username string) (*models.User, error) {
+func (in *mockUserRepo) FindByUsername(ctx context.Context, username string) (*models.User, error) {
 	args := in.Called()
 	arg1 := args.Get(0)
 	if arg1 == nil {
@@ -38,12 +40,12 @@ func (in *mockUserRepo) FindByUsername(username string) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (in *mockUserRepo) DeleteByUsername(username string) error {
+func (in *mockUserRepo) DeleteByUsername(ctx context.Context, username string) error {
 	args := in.Called()
 	return args.Error(0)
 }
 
-func (in *mockUserRepo) Update(user *models.UserPayload) error {
+func (in *mockUserRepo) Update(ctx context.Context, user *models.UserPayload) error {
 	args := in.Called()
 	return args.Error(0)
 }
@@ -81,12 +83,13 @@ func TestCreate(t *testing.T) {
 			},
 		},
 	}
-
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 	for k, v := range testTable {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			result, err := userInteractor.Create(&models.UserPayload{})
+			result, err := userInteractor.Create(ctx, &models.UserPayload{})
 
 			v.assert(t, result, err)
 		})
@@ -125,11 +128,14 @@ func TestFindUsers(t *testing.T) {
 		},
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
 	for k, v := range testTable {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			result, err := userInteractor.FindUsers()
+			result, err := userInteractor.FindUsers(ctx)
 
 			v.assert(t, result, err)
 		})
@@ -163,11 +169,14 @@ func TestFindByUsername(t *testing.T) {
 		},
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
 	for k, v := range testTable {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			result, err := userInteractor.FindByUsername("")
+			result, err := userInteractor.FindByUsername(ctx, "")
 
 			v.assert(t, result, err)
 		})
@@ -197,11 +206,13 @@ func TestDeleteByUsername(t *testing.T) {
 		},
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 	for k, v := range testTable {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			err := userInteractor.DeleteByUsername("")
+			err := userInteractor.DeleteByUsername(ctx, "")
 
 			v.assert(t, err)
 		})
@@ -231,11 +242,14 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
 	for k, v := range testTable {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			err := userInteractor.Update(&models.UserPayload{})
+			err := userInteractor.Update(ctx, &models.UserPayload{})
 
 			v.assert(t, err)
 		})

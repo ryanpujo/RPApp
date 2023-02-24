@@ -1,11 +1,13 @@
 package repository_test
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"testing"
+	"time"
 
 	_ "github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/pgconn"
@@ -120,7 +122,9 @@ func TestCreate(t *testing.T) {
 		Password: "oke",
 	}
 
-	id, err := userRepo.Create(&payload)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	id, err := userRepo.Create(ctx, &payload)
 	require.NoError(t, err)
 	require.Equal(t, 1, id)
 }
@@ -135,30 +139,36 @@ func TestFindUsers(t *testing.T) {
 		},
 		Password: "oke",
 	}
-	_, err := userRepo.Create(&payload)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	_, err := userRepo.Create(ctx, &payload)
 	require.NoError(t, err)
 
-	actual, err := userRepo.FindUsers()
+	actual, err := userRepo.FindUsers(ctx)
 	require.NoError(t, err)
 	require.NotEmpty(t, actual)
 	require.Equal(t, 2, len(actual.User))
 }
 
 func TestFindByUsername(t *testing.T) {
-	user, err := userRepo.FindByUsername("ryanpujo1")
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	user, err := userRepo.FindByUsername(ctx, "ryanpujo1")
 	require.NoError(t, err)
 	require.NotNil(t, user)
 	require.Equal(t, user.Email, "ryanpujo1@gmail.com")
-	user, err = userRepo.FindByUsername("oke")
+	user, err = userRepo.FindByUsername(ctx, "oke")
 	require.Error(t, err)
 	require.EqualError(t, err, repos.ErrNoUserFound.Error())
 	require.Nil(t, user)
 }
 
 func TestDeleteByUsername(t *testing.T) {
-	err := userRepo.DeleteByUsername("ryanpujo1")
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	err := userRepo.DeleteByUsername(ctx, "ryanpujo1")
 	require.NoError(t, err)
-	user, err := userRepo.FindByUsername("ryanpujo1")
+	user, err := userRepo.FindByUsername(ctx, "ryanpujo1")
 	require.Error(t, err)
 	require.EqualError(t, err, repos.ErrNoUserFound.Error())
 	require.Nil(t, user)
@@ -175,9 +185,11 @@ func TestUpdate(t *testing.T) {
 		},
 		Password: "oke",
 	}
-	err := userRepo.Update(payload)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	err := userRepo.Update(ctx, payload)
 	require.NoError(t, err)
-	user, err := userRepo.FindByUsername("ryanpujo")
+	user, err := userRepo.FindByUsername(ctx, "ryanpujo")
 	require.NoError(t, err)
 	require.NotNil(t, user)
 	require.Equal(t, payload.Bio.Lname, user.Lname)

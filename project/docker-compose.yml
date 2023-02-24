@@ -7,6 +7,8 @@ services:
       dockerfile: user-service.dockerfile
     ports:
       - 4000:8000
+    depends_on:
+      - postgres
     environment:
       GRPC_PORT: 8000
       DSN: host=postgres port=5432 user=ryanpujo password=oke dbname=users sslmode=disable timezone=UTC connect_timeout=20
@@ -19,6 +21,8 @@ services:
       dockerfile: broker-service.dockerfile
     ports:
       - 4001:8000
+    depends_on:
+      - user-service
     environment:
       PORT: 8000
     volumes:

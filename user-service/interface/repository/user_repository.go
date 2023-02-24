@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"time"
 
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 )
@@ -19,9 +18,7 @@ func NewUserRepository(db *sql.DB) *userRepository {
 
 var ErrNoUserFound = errors.New("user is not registered yet")
 
-func (repo *userRepository) Create(user *models.UserPayload) (int, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
-	defer cancel()
+func (repo *userRepository) Create(ctx context.Context, user *models.UserPayload) (int, error) {
 
 	statement := "insert into users (first_name, last_name, username, password, email) values ($1, $2, $3, $4, $5) returning id"
 	var id int
@@ -39,10 +36,7 @@ func (repo *userRepository) Create(user *models.UserPayload) (int, error) {
 	return id, nil
 }
 
-func (repo *userRepository) FindUsers() (*models.Users, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
-	defer cancel()
-
+func (repo *userRepository) FindUsers(ctx context.Context) (*models.Users, error) {
 	statement := `select id, first_name, last_name, username, email from users order by first_name`
 
 	rows, err := repo.db.QueryContext(ctx, statement)
@@ -71,9 +65,7 @@ func (repo *userRepository) FindUsers() (*models.Users, error) {
 	return &users, nil
 }
 
-func (repo *userRepository) FindByUsername(username string) (*models.User, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
-	defer cancel()
+func (repo *userRepository) FindByUsername(ctx context.Context, username string) (*models.User, error) {
 
 	statement := `select id, first_name, last_name, username, password, email from users where username=$1`
 	var user models.User
@@ -95,9 +87,7 @@ func (repo *userRepository) FindByUsername(username string) (*models.User, error
 	return &user, nil
 }
 
-func (repo *userRepository) DeleteByUsername(username string) error {
-	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
-	defer cancel()
+func (repo *userRepository) DeleteByUsername(ctx context.Context, username string) error {
 
 	statement := "delete from users where username=$1"
 
@@ -108,9 +98,7 @@ func (repo *userRepository) DeleteByUsername(username string) error {
 	return nil
 }
 
-func (repo *userRepository) Update(user *models.UserPayload) error {
-	ctx, cancel := context.WithTimeout(context.TODO(), 2*time.Second)
-	defer cancel()
+func (repo *userRepository) Update(ctx context.Context, user *models.UserPayload) error {
 
 	payload := user.GetBio()
 	statement := `update users set

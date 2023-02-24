@@ -22,7 +22,7 @@ func NewUserServer(i interactor.UserInteractor) *userServer {
 }
 
 func (us *userServer) RegisterUser(ctx context.Context, payload *models.UserPayload) (*models.UserId, error) {
-	id, err := us.interactor.Create(payload)
+	id, err := us.interactor.Create(ctx, payload)
 	if err != nil {
 		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
@@ -31,7 +31,7 @@ func (us *userServer) RegisterUser(ctx context.Context, payload *models.UserPayl
 
 func (us *userServer) FindByUsername(ctx context.Context, username *models.Username) (*models.UserBio, error) {
 	input := username.GetUsername()
-	foundUser, err := us.interactor.FindByUsername(input)
+	foundUser, err := us.interactor.FindByUsername(ctx, input)
 	if err != nil {
 		if errors.Is(err, repository.ErrNoUserFound) {
 			return nil, status.Error(codes.NotFound, repository.ErrNoUserFound.Error())
@@ -48,8 +48,8 @@ func (us *userServer) FindByUsername(ctx context.Context, username *models.Usern
 	return &bio, nil
 }
 
-func (us *userServer) FindUsers(context.Context, *emptypb.Empty) (*models.Users, error) {
-	users, err := us.interactor.FindUsers()
+func (us *userServer) FindUsers(ctx context.Context, empty *emptypb.Empty) (*models.Users, error) {
+	users, err := us.interactor.FindUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (us *userServer) FindUsers(context.Context, *emptypb.Empty) (*models.Users,
 }
 
 func (us *userServer) DeleteByUsername(ctx context.Context, username *models.Username) (*emptypb.Empty, error) {
-	err := us.interactor.DeleteByUsername(username.Username)
+	err := us.interactor.DeleteByUsername(ctx, username.Username)
 	if err != nil {
 		return &emptypb.Empty{}, status.Error(codes.FailedPrecondition, err.Error())
 	}
@@ -66,7 +66,7 @@ func (us *userServer) DeleteByUsername(ctx context.Context, username *models.Use
 }
 
 func (us *userServer) Update(ctx context.Context, payload *models.UserPayload) (*emptypb.Empty, error) {
-	err := us.interactor.Update(payload)
+	err := us.interactor.Update(ctx, payload)
 	if err != nil {
 		return &emptypb.Empty{}, status.Error(codes.FailedPrecondition, err.Error())
 	}

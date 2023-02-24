@@ -1,17 +1,19 @@
 package interactor
 
 import (
+	"context"
+
 	"github.com/spriigan/RPApp/usecases/repository"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserInteractor interface {
-	Create(user *models.UserPayload) (int, error)
-	FindUsers() (*models.Users, error)
-	FindByUsername(username string) (*models.User, error)
-	DeleteByUsername(username string) error
-	Update(user *models.UserPayload) error
+	Create(ctx context.Context, user *models.UserPayload) (int, error)
+	FindUsers(ctx context.Context) (*models.Users, error)
+	FindByUsername(ctx context.Context, username string) (*models.User, error)
+	DeleteByUsername(ctx context.Context, username string) error
+	Update(ctx context.Context, user *models.UserPayload) error
 }
 
 type userInteractor struct {
@@ -22,42 +24,44 @@ func NewUserInteractor(repo repository.UserRepository) *userInteractor {
 	return &userInteractor{Repo: repo}
 }
 
-func (in *userInteractor) Create(user *models.UserPayload) (int, error) {
+func (in *userInteractor) Create(ctx context.Context, user *models.UserPayload) (int, error) {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	user.Password = string(hash)
-	id, err := in.Repo.Create(user)
+	id, err := in.Repo.Create(ctx, user)
 	if err != nil {
 		return 0, err
 	}
 	return id, nil
 }
 
-func (in *userInteractor) FindUsers() (*models.Users, error) {
-	users, err := in.Repo.FindUsers()
+func (in *userInteractor) FindUsers(ctx context.Context) (*models.Users, error) {
+	users, err := in.Repo.FindUsers(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return users, nil
 }
 
-func (in *userInteractor) FindByUsername(username string) (*models.User, error) {
-	user, err := in.Repo.FindByUsername(username)
+func (in *userInteractor) FindByUsername(ctx context.Context, username string) (*models.User, error) {
+	user, err := in.Repo.FindByUsername(ctx, username)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func (in *userInteractor) DeleteByUsername(username string) error {
-	err := in.Repo.DeleteByUsername(username)
+func (in *userInteractor) DeleteByUsername(ctx context.Context, username string) error {
+	err := in.Repo.DeleteByUsername(ctx, username)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (in *userInteractor) Update(user *models.UserPayload) error {
-	err := in.Repo.Update(user)
+func (in *userInteractor) Update(ctx context.Context, user *models.UserPayload) error {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	user.Password = string(hash)
+	err := in.Repo.Update(ctx, user)
 	if err != nil {
 		return err
 	}

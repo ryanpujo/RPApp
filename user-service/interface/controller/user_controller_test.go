@@ -26,12 +26,12 @@ type interactorMock struct {
 	mock.Mock
 }
 
-func (in *interactorMock) Create(payload *models.UserPayload) (int, error) {
+func (in *interactorMock) Create(ctx context.Context, payload *models.UserPayload) (int, error) {
 	args := in.Called(payload)
 	return args.Int(0), args.Error(1)
 }
 
-func (in *interactorMock) FindUsers() (*models.Users, error) {
+func (in *interactorMock) FindUsers(ctx context.Context) (*models.Users, error) {
 	args := in.Called()
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -39,7 +39,7 @@ func (in *interactorMock) FindUsers() (*models.Users, error) {
 	return args.Get(0).(*models.Users), args.Error(1)
 }
 
-func (in *interactorMock) FindByUsername(username string) (*models.User, error) {
+func (in *interactorMock) FindByUsername(ctx context.Context, username string) (*models.User, error) {
 	args := in.Called(username)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -47,12 +47,12 @@ func (in *interactorMock) FindByUsername(username string) (*models.User, error) 
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (in *interactorMock) DeleteByUsername(username string) error {
+func (in *interactorMock) DeleteByUsername(ctx context.Context, username string) error {
 	args := in.Called(username)
 	return args.Error(0)
 }
 
-func (in *interactorMock) Update(user *models.UserPayload) error {
+func (in *interactorMock) Update(ctx context.Context, user *models.UserPayload) error {
 	args := in.Called(user)
 	return args.Error(0)
 }
