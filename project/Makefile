@@ -29,3 +29,7 @@ proto_user:
 test:
 	cd ../user-service && go test ./interface/repository ./interface/controller ./usecases/interactor --coverprofile=cover.out
 	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out
+
+coverage_show:
+	cd ../user-service && go tool cover -html=cover.out
+	cd ../broker-service && go tool cover -html=cover.out
