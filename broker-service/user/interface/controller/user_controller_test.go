@@ -35,25 +35,34 @@ func (mc mockClient) RegisterUser(ctx context.Context, in *models.UserPayload, o
 }
 
 func (mc mockClient) FindUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*models.Users, error) {
-	return nil, nil
+	args := mc.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Users), args.Error(1)
 }
 
 func (mc mockClient) FindByUsername(ctx context.Context, in *models.Username, opts ...grpc.CallOption) (*models.UserBio, error) {
-	return nil, nil
+	args := mc.Called(ctx, in)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.UserBio), args.Error(1)
 }
 
 func (mc mockClient) DeleteByUsername(ctx context.Context, in *models.Username, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	return nil, nil
+	args := mc.Called(ctx, in)
+	return nil, args.Error(1)
 }
 
 func (mc mockClient) Update(ctx context.Context, in *models.UserPayload, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	return nil, nil
+	args := mc.Called(ctx, in)
+	return nil, args.Error(1)
 }
 
 var ac *adapters.AppController
 var client *mockClient
 var mux *gin.Engine
-var res response.JsonResponse
 
 func TestMain(m *testing.M) {
 	client = new(mockClient)
@@ -127,9 +136,243 @@ func TestRegisterUser(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodPost, "/user", bytes.NewReader(v.json))
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
+			var res response.JsonResponse
 			_ = json.NewDecoder(rr.Body).Decode(&res)
 
 			v.assert(t, rr.Code, res.Data, res.Error)
+		})
+	}
+}
+
+func TestFindUsers(t *testing.T) {
+	users := &models.Users{
+		User: []*models.UserBio{
+			{},
+			{},
+			{},
+		},
+	}
+	testTabel := map[string]struct {
+		arrange func(t *testing.T)
+		assert  func(t *testing.T, statusCode int, data interface{}, isError bool)
+	}{
+		"success api call": {
+			arrange: func(t *testing.T) {
+				client.On("FindUsers", mock.Anything, mock.Anything).Return(users, nil).Once()
+			},
+			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+				require.Equal(t, http.StatusOK, statusCode)
+				require.False(t, isError)
+				require.NotNil(t, data)
+			},
+		},
+		"failed call": {
+			arrange: func(t *testing.T) {
+				client.On("FindUsers", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+			},
+			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+				require.Equal(t, http.StatusBadRequest, statusCode)
+				require.Nil(t, data)
+				require.True(t, isError)
+			},
+		},
+	}
+
+	for k, v := range testTabel {
+		t.Run(k, func(t *testing.T) {
+			v.arrange(t)
+
+			req, _ := http.NewRequest(http.MethodGet, "/user", nil)
+			rr := httptest.NewRecorder()
+			mux.ServeHTTP(rr, req)
+			var res response.JsonResponse
+			_ = json.NewDecoder(rr.Body).Decode(&res)
+
+			v.assert(t, rr.Code, res.Data, res.Error)
+		})
+	}
+}
+
+func TestFindByUsername(t *testing.T) {
+	user := &models.UserBio{Lname: "connor"}
+	testTabel := map[string]struct {
+		uri     string
+		arrange func(t *testing.T)
+		assert  func(t *testing.T, statusCode int, data interface{}, isError bool)
+	}{
+		"success api call": {
+			uri: "/user/ryanpuj0",
+			arrange: func(t *testing.T) {
+				client.On("FindByUsername", mock.Anything, mock.Anything).Return(user, nil).Once()
+			},
+			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+				require.Equal(t, http.StatusOK, statusCode)
+				require.False(t, isError)
+				require.NotNil(t, data)
+			},
+		},
+		"failed call": {
+			uri: "/user/ryanpujo",
+			arrange: func(t *testing.T) {
+				client.On("FindByUsername", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+			},
+			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+				require.Equal(t, http.StatusBadRequest, statusCode)
+				require.Zero(t, data)
+				require.True(t, isError)
+			},
+		},
+		"bad uri": {
+			uri:     "/user/rt",
+			arrange: func(t *testing.T) {},
+			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+				require.Equal(t, http.StatusBadRequest, statusCode)
+				require.Nil(t, data)
+				require.True(t, isError)
+			},
+		},
+	}
+
+	for k, v := range testTabel {
+		t.Run(k, func(t *testing.T) {
+			v.arrange(t)
+
+			req, _ := http.NewRequest(http.MethodGet, v.uri, nil)
+			rr := httptest.NewRecorder()
+			mux.ServeHTTP(rr, req)
+			var res response.JsonResponse
+			_ = json.NewDecoder(rr.Body).Decode(&res)
+
+			v.assert(t, rr.Code, res.Data, res.Error)
+		})
+	}
+}
+
+func TestDeleteByUsername(t *testing.T) {
+	testTable := map[string]struct {
+		uri     string
+		arrange func(t *testing.T)
+		assert  func(t *testing.T, statusCode int, message string, isError bool)
+	}{
+		"success api call": {
+			uri: "/user/ryanpuj0",
+			arrange: func(t *testing.T) {
+				client.On("DeleteByUsername", mock.Anything, mock.Anything).Return(nil, nil).Once()
+			},
+			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+				require.Equal(t, http.StatusOK, statusCode)
+				require.False(t, isError)
+				require.NotNil(t, message)
+				require.Equal(t, "user has been deleted", message)
+			},
+		},
+		"failed call": {
+			uri: "/user/ryanpujo",
+			arrange: func(t *testing.T) {
+				client.On("DeleteByUsername", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+			},
+			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+				require.Equal(t, http.StatusBadRequest, statusCode)
+				require.NotEmpty(t, message)
+				require.Equal(t, "got an error", message)
+				require.True(t, isError)
+			},
+		},
+		"bad uri": {
+			uri:     "/user/rt",
+			arrange: func(t *testing.T) {},
+			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+				require.Equal(t, http.StatusBadRequest, statusCode)
+				require.NotEmpty(t, message)
+				require.True(t, isError)
+			},
+		},
+	}
+
+	for k, v := range testTable {
+		t.Run(k, func(t *testing.T) {
+			v.arrange(t)
+
+			req, _ := http.NewRequest(http.MethodDelete, v.uri, nil)
+			rr := httptest.NewRecorder()
+			mux.ServeHTTP(rr, req)
+			var res response.JsonResponse
+			_ = json.NewDecoder(rr.Body).Decode(&res)
+
+			v.assert(t, rr.Code, res.Message, res.Error)
+		})
+	}
+}
+
+func TestUpdate(t *testing.T) {
+	jsonReq := []byte(`{
+		"fname": "ryan",
+		"lname": "pujo",
+		"username": "ryanpujo",
+		"email": "ryanpuj@ogmail.com",
+		"password": "kjrkjnrjnrntkn"
+	}
+	`)
+
+	wrongValidation := []byte(`{
+		"fname": "ryan",
+		"lname": "pujo",
+		"username": "ryanpujo",
+		"email": "ryanpuj@ogmail.com",
+		"password": "fdf"
+	}
+	`)
+	testTable := map[string]struct {
+		json    []byte
+		arrange func(t *testing.T)
+		assert  func(t *testing.T, statusCode int, message string, isError bool)
+	}{
+		"succes api call": {
+			json: jsonReq,
+			arrange: func(t *testing.T) {
+				client.On("Update", mock.Anything, mock.Anything).Return(nil, nil).Once()
+			},
+			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+				require.Equal(t, http.StatusOK, statusCode)
+				require.NotEmpty(t, message)
+				require.Equal(t, "succesfully updated", message)
+				require.False(t, isError)
+			},
+		},
+		"fail api call": {
+			json: jsonReq,
+			arrange: func(t *testing.T) {
+				client.On("Update", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+			},
+			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+				require.Equal(t, http.StatusBadRequest, statusCode)
+				require.NotEmpty(t, message)
+				require.Equal(t, "got an error", message)
+				require.True(t, isError)
+			},
+		},
+		"bad json": {
+			json:    wrongValidation,
+			arrange: func(t *testing.T) {},
+			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+				require.Equal(t, http.StatusBadRequest, statusCode)
+				require.NotEmpty(t, message)
+				require.True(t, isError)
+			},
+		},
+	}
+
+	for k, v := range testTable {
+		t.Run(k, func(t *testing.T) {
+			v.arrange(t)
+
+			req, _ := http.NewRequest(http.MethodPatch, "/user", bytes.NewReader(v.json))
+			rr := httptest.NewRecorder()
+			mux.ServeHTTP(rr, req)
+			var res response.JsonResponse
+			_ = json.NewDecoder(rr.Body).Decode(&res)
+
+			v.assert(t, rr.Code, res.Message, res.Error)
 		})
 	}
 }
