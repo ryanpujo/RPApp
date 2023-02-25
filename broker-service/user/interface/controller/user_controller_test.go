@@ -13,8 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spriigan/broker/adapters"
 	"github.com/spriigan/broker/infrastructure/router"
-	"github.com/spriigan/broker/registry"
 	"github.com/spriigan/broker/response"
+	"github.com/spriigan/broker/user/interface/controller"
 	"github.com/spriigan/broker/user/user-proto/grpc/models"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -66,8 +66,9 @@ var mux *gin.Engine
 
 func TestMain(m *testing.M) {
 	client = new(mockClient)
-	register := registry.New(client)
-	ac = register.NewAppController()
+	ac = &adapters.AppController{
+		User: controller.NewUserController(client),
+	}
 	mux = router.Route(ac)
 	os.Exit(m.Run())
 }

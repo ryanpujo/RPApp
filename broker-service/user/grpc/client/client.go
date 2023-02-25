@@ -5,7 +5,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-func GrpcClient(addr string, opts ...grpc.DialOption) (models.UserServiceClient, func(), error) {
+type Close func()
+
+func GrpcClient(addr string, opts ...grpc.DialOption) (models.UserServiceClient, Close, error) {
 	conn, err := grpc.Dial(addr, opts...)
 	if err != nil {
 		return nil, func() {
