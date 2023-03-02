@@ -19,6 +19,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -102,7 +104,7 @@ func TestRegisterUser(t *testing.T) {
 				client.On("RegisterUser", mock.Anything, mock.Anything).Return(&models.UserId{Id: int64(1)}, nil).Once()
 			},
 			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
-				require.Equal(t, http.StatusOK, statusCode)
+				require.Equal(t, http.StatusCreated, statusCode)
 				require.False(t, isError)
 				require.NotNil(t, data)
 				require.Equal(t, float64(1), data.(float64))
@@ -111,7 +113,7 @@ func TestRegisterUser(t *testing.T) {
 		"failed call": {
 			json: jsonReq,
 			arrange: func(t *testing.T) {
-				client.On("RegisterUser", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+				client.On("RegisterUser", mock.Anything, mock.Anything).Return(nil, status.Error(codes.FailedPrecondition, "got an error")).Once()
 			},
 			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
 				require.Equal(t, http.StatusBadRequest, statusCode)

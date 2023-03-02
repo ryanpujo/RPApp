@@ -9,6 +9,8 @@ import (
 	"github.com/spriigan/broker/response"
 	"github.com/spriigan/broker/user/domain"
 	"github.com/spriigan/broker/user/user-proto/grpc/models"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -57,14 +59,20 @@ func (uc *userController) Create(c *gin.Context) {
 
 	id, err := uc.client.RegisterUser(ctx, &payloadPB)
 	if err != nil {
+		st, ok := status.FromError(err)
+		if !ok {
+			panic(err)
+		}
 		res.Error = true
-		res.Message = err.Error()
+		res.Message = st.Message()
+		res.Code = st.Code()
 		c.JSON(http.StatusBadRequest, res)
 		return
 	}
 	res.Error = false
+	res.Code = codes.OK
 	res.Data = id.GetId()
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusCreated, res)
 }
 
 func (uc *userController) FindUsers(c *gin.Context) {

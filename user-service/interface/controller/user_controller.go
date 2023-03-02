@@ -24,6 +24,9 @@ func NewUserServer(i interactor.UserInteractor) *userServer {
 func (us *userServer) RegisterUser(ctx context.Context, payload *models.UserPayload) (*models.UserId, error) {
 	id, err := us.interactor.Create(ctx, payload)
 	if err != nil {
+		if errors.Is(err, interactor.ErrDuplicateKeyInDatabase) {
+			return nil, status.Error(codes.AlreadyExists, err.Error())
+		}
 		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
 	return &models.UserId{Id: int64(id)}, nil
@@ -51,7 +54,7 @@ func (us *userServer) FindByUsername(ctx context.Context, username *models.Usern
 func (us *userServer) FindUsers(ctx context.Context, empty *emptypb.Empty) (*models.Users, error) {
 	users, err := us.interactor.FindUsers(ctx)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
 
 	return users, nil

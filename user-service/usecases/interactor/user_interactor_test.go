@@ -66,6 +66,7 @@ func TestCreate(t *testing.T) {
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
+				mockRepo.On("FindByUsername", mock.Anything).Return(nil, errors.New("error")).Once()
 				mockRepo.On("Create", mock.Anything).Return(1, nil).Once()
 			},
 			assert: func(t *testing.T, id int, err error) {
@@ -76,10 +77,21 @@ func TestCreate(t *testing.T) {
 		"fail call": {
 			arrange: func(t *testing.T) {
 				mockRepo.On("Create", mock.Anything).Return(0, errors.New("got an error")).Once()
+				mockRepo.On("FindByUsername", mock.Anything).Return(nil, errors.New("error")).Once()
 			},
 			assert: func(t *testing.T, id int, err error) {
 				require.Error(t, err)
 				require.Zero(t, id)
+			},
+		},
+		"user already exist": {
+			arrange: func(t *testing.T) {
+				mockRepo.On("FindByUsername", mock.Anything).Return(&models.User{}, nil).Once()
+			},
+			assert: func(t *testing.T, id int, err error) {
+				require.Zero(t, id)
+				require.Error(t, err)
+				require.ErrorIs(t, err, interactor.ErrDuplicateKeyInDatabase)
 			},
 		},
 	}
@@ -89,7 +101,7 @@ func TestCreate(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			result, err := userInteractor.Create(ctx, &models.UserPayload{})
+			result, err := userInteractor.Create(ctx, &models.UserPayload{Bio: &models.UserBio{Username: "ryan"}})
 
 			v.assert(t, result, err)
 		})

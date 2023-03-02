@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "project"
+		},
+		{
+			"path": "../../flutter/ryan_pujo_app"
 		}
 	],
 	"settings": {}

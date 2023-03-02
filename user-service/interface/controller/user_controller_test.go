@@ -11,6 +11,7 @@ import (
 
 	"github.com/spriigan/RPApp/interface/controller"
 	"github.com/spriigan/RPApp/interface/repository"
+	"github.com/spriigan/RPApp/usecases/interactor"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -57,7 +58,7 @@ func (in *interactorMock) Update(ctx context.Context, user *models.UserPayload) 
 	return args.Error(0)
 }
 
-var interactor *interactorMock
+var mockInteractor *interactorMock
 var client models.UserServiceClient
 var lis *bufconn.Listener
 
@@ -70,8 +71,8 @@ func TestMain(m *testing.M) {
 	defer lis.Close()
 	s := grpc.NewServer()
 	defer s.Stop()
-	interactor = new(interactorMock)
-	models.RegisterUserServiceServer(s, controller.NewUserServer(interactor))
+	mockInteractor = new(interactorMock)
+	models.RegisterUserServiceServer(s, controller.NewUserServer(mockInteractor))
 	conn, err := grpc.DialContext(context.Background(), "buffnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatal(err)
@@ -93,7 +94,7 @@ func TestRegisterUser(t *testing.T) {
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				interactor.On("Create", mock.Anything).Return(1, nil).Once()
+				mockInteractor.On("Create", mock.Anything).Return(1, nil).Once()
 			},
 			assert: func(t *testing.T, id int, err error) {
 				require.NoError(t, err)
@@ -103,10 +104,20 @@ func TestRegisterUser(t *testing.T) {
 		},
 		"fail call": {
 			arrange: func(t *testing.T) {
-				interactor.On("Create", mock.Anything).Return(0, errors.New("got an error")).Once()
+				mockInteractor.On("Create", mock.Anything).Return(0, errors.New("got an error")).Once()
 			},
 			assert: func(t *testing.T, id int, err error) {
 				require.Error(t, err)
+				require.Zero(t, id)
+			},
+		},
+		"user already exist": {
+			arrange: func(t *testing.T) {
+				mockInteractor.On("Create", mock.Anything).Return(0, interactor.ErrDuplicateKeyInDatabase)
+			},
+			assert: func(t *testing.T, id int, err error) {
+				require.Error(t, err)
+				require.ErrorIs(t, err, status.Error(codes.AlreadyExists, interactor.ErrDuplicateKeyInDatabase.Error()))
 				require.Zero(t, id)
 			},
 		},
@@ -134,7 +145,7 @@ func TestFindByUsername(t *testing.T) {
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				interactor.On("FindByUsername", mock.Anything).Return(user, nil).Once()
+				mockInteractor.On("FindByUsername", mock.Anything).Return(user, nil).Once()
 			},
 			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.NoError(t, err)
@@ -144,7 +155,7 @@ func TestFindByUsername(t *testing.T) {
 		},
 		"fail call": {
 			arrange: func(t *testing.T) {
-				interactor.On("FindByUsername", mock.Anything).Return(nil, errors.New("got an error")).Once()
+				mockInteractor.On("FindByUsername", mock.Anything).Return(nil, errors.New("got an error")).Once()
 			},
 			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.Error(t, err)
@@ -153,7 +164,7 @@ func TestFindByUsername(t *testing.T) {
 		},
 		"user not found": {
 			arrange: func(t *testing.T) {
-				interactor.On("FindByUsername", mock.Anything).Return(nil, repository.ErrNoUserFound).Once()
+				mockInteractor.On("FindByUsername", mock.Anything).Return(nil, repository.ErrNoUserFound).Once()
 			},
 			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.Error(t, err)
@@ -188,7 +199,7 @@ func TestFindUsers(t *testing.T) {
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				interactor.On("FindUsers").Return(users, nil).Once()
+				mockInteractor.On("FindUsers").Return(users, nil).Once()
 			},
 			assert: func(t *testing.T, actual *models.Users, err error) {
 				require.NoError(t, err)
@@ -198,7 +209,7 @@ func TestFindUsers(t *testing.T) {
 		},
 		"fail call": {
 			arrange: func(t *testing.T) {
-				interactor.On("FindUsers", mock.Anything).Return(nil, errors.New("got an error")).Once()
+				mockInteractor.On("FindUsers", mock.Anything).Return(nil, errors.New("got an error")).Once()
 			},
 			assert: func(t *testing.T, actual *models.Users, err error) {
 				require.Error(t, err)
@@ -227,7 +238,7 @@ func TestDeleteByUsername(t *testing.T) {
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				interactor.On("DeleteByUsername", mock.Anything).Return(nil).Once()
+				mockInteractor.On("DeleteByUsername", mock.Anything).Return(nil).Once()
 			},
 			assert: func(t *testing.T, err error) {
 				require.NoError(t, err)
@@ -235,7 +246,7 @@ func TestDeleteByUsername(t *testing.T) {
 		},
 		"fail call": {
 			arrange: func(t *testing.T) {
-				interactor.On("DeleteByUsername", mock.Anything).Return(errors.New("got an error")).Once()
+				mockInteractor.On("DeleteByUsername", mock.Anything).Return(errors.New("got an error")).Once()
 			},
 			assert: func(t *testing.T, err error) {
 				require.Error(t, err)
@@ -263,7 +274,7 @@ func TestUpdate(t *testing.T) {
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				interactor.On("Update", mock.Anything).Return(nil).Once()
+				mockInteractor.On("Update", mock.Anything).Return(nil).Once()
 			},
 			assert: func(t *testing.T, err error) {
 				require.NoError(t, err)
@@ -271,7 +282,7 @@ func TestUpdate(t *testing.T) {
 		},
 		"fail call": {
 			arrange: func(t *testing.T) {
-				interactor.On("Update", mock.Anything).Return(errors.New("got an error")).Once()
+				mockInteractor.On("Update", mock.Anything).Return(errors.New("got an error")).Once()
 			},
 			assert: func(t *testing.T, err error) {
 				require.Error(t, err)

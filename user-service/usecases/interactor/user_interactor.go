@@ -2,6 +2,7 @@ package interactor
 
 import (
 	"context"
+	"errors"
 
 	"github.com/spriigan/RPApp/usecases/repository"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
@@ -16,6 +17,8 @@ type UserInteractor interface {
 	Update(ctx context.Context, user *models.UserPayload) error
 }
 
+var ErrDuplicateKeyInDatabase = errors.New("duplicate key in database")
+
 type userInteractor struct {
 	Repo repository.UserRepository
 }
@@ -25,6 +28,10 @@ func NewUserInteractor(repo repository.UserRepository) *userInteractor {
 }
 
 func (in *userInteractor) Create(ctx context.Context, user *models.UserPayload) (int, error) {
+	_, errNoUser := in.Repo.FindByUsername(ctx, user.Bio.Username)
+	if errNoUser == nil {
+		return 0, ErrDuplicateKeyInDatabase
+	}
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	user.Password = string(hash)
 	id, err := in.Repo.Create(ctx, user)
