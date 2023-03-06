@@ -10,7 +10,7 @@ import (
 )
 
 type UserInteractor interface {
-	Create(ctx context.Context, user *models.UserPayload) (int, error)
+	Create(ctx context.Context, user *models.UserPayload) (*models.UserBio, error)
 	FindUsers(ctx context.Context) (*models.Users, error)
 	FindByUsername(ctx context.Context, username string) (*models.User, error)
 	DeleteByUsername(ctx context.Context, username string) error
@@ -27,18 +27,18 @@ func NewUserInteractor(repo repository.UserRepository) *userInteractor {
 	return &userInteractor{Repo: repo}
 }
 
-func (in *userInteractor) Create(ctx context.Context, user *models.UserPayload) (int, error) {
+func (in *userInteractor) Create(ctx context.Context, user *models.UserPayload) (*models.UserBio, error) {
 	_, errNoUser := in.Repo.FindByUsername(ctx, user.Bio.Username)
 	if errNoUser == nil {
-		return 0, ErrDuplicateKeyInDatabase
+		return nil, ErrDuplicateKeyInDatabase
 	}
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	user.Password = string(hash)
-	id, err := in.Repo.Create(ctx, user)
+	_, err := in.Repo.Create(ctx, user)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return id, nil
+	return user.GetBio(), nil
 }
 
 func (in *userInteractor) FindUsers(ctx context.Context) (*models.Users, error) {

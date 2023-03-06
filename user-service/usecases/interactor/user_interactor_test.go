@@ -62,16 +62,16 @@ func TestMain(m *testing.M) {
 func TestCreate(t *testing.T) {
 	testTable := map[string]struct {
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, id int, err error)
+		assert  func(t *testing.T, actual *models.UserBio, err error)
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
 				mockRepo.On("FindByUsername", mock.Anything).Return(nil, errors.New("error")).Once()
 				mockRepo.On("Create", mock.Anything).Return(1, nil).Once()
 			},
-			assert: func(t *testing.T, id int, err error) {
+			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.NoError(t, err)
-				require.Equal(t, 1, id)
+				require.NotNil(t, actual)
 			},
 		},
 		"fail call": {
@@ -79,17 +79,17 @@ func TestCreate(t *testing.T) {
 				mockRepo.On("Create", mock.Anything).Return(0, errors.New("got an error")).Once()
 				mockRepo.On("FindByUsername", mock.Anything).Return(nil, errors.New("error")).Once()
 			},
-			assert: func(t *testing.T, id int, err error) {
+			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.Error(t, err)
-				require.Zero(t, id)
+				require.Zero(t, actual)
 			},
 		},
 		"user already exist": {
 			arrange: func(t *testing.T) {
 				mockRepo.On("FindByUsername", mock.Anything).Return(&models.User{}, nil).Once()
 			},
-			assert: func(t *testing.T, id int, err error) {
-				require.Zero(t, id)
+			assert: func(t *testing.T, actual *models.UserBio, err error) {
+				require.Zero(t, actual)
 				require.Error(t, err)
 				require.ErrorIs(t, err, interactor.ErrDuplicateKeyInDatabase)
 			},

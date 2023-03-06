@@ -27,9 +27,12 @@ type interactorMock struct {
 	mock.Mock
 }
 
-func (in *interactorMock) Create(ctx context.Context, payload *models.UserPayload) (int, error) {
+func (in *interactorMock) Create(ctx context.Context, payload *models.UserPayload) (*models.UserBio, error) {
 	args := in.Called(payload)
-	return args.Int(0), args.Error(1)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.UserBio), args.Error(1)
 }
 
 func (in *interactorMock) FindUsers(ctx context.Context) (*models.Users, error) {
@@ -90,35 +93,34 @@ func TestMain(m *testing.M) {
 func TestRegisterUser(t *testing.T) {
 	testTable := map[string]struct {
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, id int, err error)
+		assert  func(t *testing.T, actual *models.UserBio, err error)
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				mockInteractor.On("Create", mock.Anything).Return(1, nil).Once()
+				mockInteractor.On("Create", mock.Anything).Return(&models.UserBio{}, nil).Once()
 			},
-			assert: func(t *testing.T, id int, err error) {
+			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.NoError(t, err)
-				require.NotZero(t, id)
-				require.Equal(t, 1, id)
+				require.NotZero(t, actual)
 			},
 		},
 		"fail call": {
 			arrange: func(t *testing.T) {
-				mockInteractor.On("Create", mock.Anything).Return(0, errors.New("got an error")).Once()
+				mockInteractor.On("Create", mock.Anything).Return(nil, errors.New("got an error")).Once()
 			},
-			assert: func(t *testing.T, id int, err error) {
+			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.Error(t, err)
-				require.Zero(t, id)
+				require.Zero(t, actual)
 			},
 		},
 		"user already exist": {
 			arrange: func(t *testing.T) {
-				mockInteractor.On("Create", mock.Anything).Return(0, interactor.ErrDuplicateKeyInDatabase)
+				mockInteractor.On("Create", mock.Anything).Return(nil, interactor.ErrDuplicateKeyInDatabase)
 			},
-			assert: func(t *testing.T, id int, err error) {
+			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.Error(t, err)
 				require.ErrorIs(t, err, status.Error(codes.AlreadyExists, interactor.ErrDuplicateKeyInDatabase.Error()))
-				require.Zero(t, id)
+				require.Zero(t, actual)
 			},
 		},
 	}
@@ -130,7 +132,7 @@ func TestRegisterUser(t *testing.T) {
 
 			result, err := client.RegisterUser(ctx, &models.UserPayload{Bio: &models.UserBio{}})
 
-			v.assert(t, int(result.GetId()), err)
+			v.assert(t, result, err)
 		})
 	}
 }

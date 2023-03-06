@@ -2,14 +2,16 @@ package controller
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/spriigan/broker/helper"
 	"github.com/spriigan/broker/response"
 	"github.com/spriigan/broker/user/domain"
 	"github.com/spriigan/broker/user/user-proto/grpc/models"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -35,12 +37,15 @@ func NewUserController(client models.UserServiceClient) *userController {
 
 func (uc *userController) Create(c *gin.Context) {
 	var payload domain.UserPayload
-	var res response.JsonResponse
 	err := c.ShouldBindJSON(&payload)
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		var verr validator.ValidationErrors
+		if errors.As(err, &verr) {
+			c.JSON(http.StatusBadRequest, gin.H{"errors": helper.ValidationErrorUnwrap(verr)})
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
@@ -57,22 +62,21 @@ func (uc *userController) Create(c *gin.Context) {
 		Password: payload.Password,
 	}
 
-	id, err := uc.client.RegisterUser(ctx, &payloadPB)
+	result, err := uc.client.RegisterUser(ctx, &payloadPB)
 	if err != nil {
 		st, ok := status.FromError(err)
 		if !ok {
 			panic(err)
 		}
-		res.Error = true
-		res.Message = st.Message()
-		res.Code = st.Code()
-		c.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"grpcCode": st.Code(),
+			"error":    st.Message(),
+		})
 		return
 	}
-	res.Error = false
-	res.Code = codes.OK
-	res.Data = id.GetId()
-	c.JSON(http.StatusCreated, res)
+	c.JSON(http.StatusCreated, gin.H{
+		"data": result,
+	})
 }
 
 func (uc *userController) FindUsers(c *gin.Context) {

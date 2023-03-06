@@ -21,15 +21,15 @@ func NewUserServer(i interactor.UserInteractor) *userServer {
 	return &userServer{interactor: i}
 }
 
-func (us *userServer) RegisterUser(ctx context.Context, payload *models.UserPayload) (*models.UserId, error) {
-	id, err := us.interactor.Create(ctx, payload)
+func (us *userServer) RegisterUser(ctx context.Context, payload *models.UserPayload) (*models.UserBio, error) {
+	bio, err := us.interactor.Create(ctx, payload)
 	if err != nil {
 		if errors.Is(err, interactor.ErrDuplicateKeyInDatabase) {
 			return nil, status.Error(codes.AlreadyExists, err.Error())
 		}
 		return nil, status.Error(codes.FailedPrecondition, err.Error())
 	}
-	return &models.UserId{Id: int64(id)}, nil
+	return bio, nil
 }
 
 func (us *userServer) FindByUsername(ctx context.Context, username *models.Username) (*models.UserBio, error) {

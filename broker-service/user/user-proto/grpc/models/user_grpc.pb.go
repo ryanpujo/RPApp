@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	RegisterUser(ctx context.Context, in *UserPayload, opts ...grpc.CallOption) (*UserId, error)
+	RegisterUser(ctx context.Context, in *UserPayload, opts ...grpc.CallOption) (*UserBio, error)
 	FindUsers(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*Users, error)
 	FindByUsername(ctx context.Context, in *Username, opts ...grpc.CallOption) (*UserBio, error)
 	DeleteByUsername(ctx context.Context, in *Username, opts ...grpc.CallOption) (*empty.Empty, error)
@@ -38,8 +38,8 @@ func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 	return &userServiceClient{cc}
 }
 
-func (c *userServiceClient) RegisterUser(ctx context.Context, in *UserPayload, opts ...grpc.CallOption) (*UserId, error) {
-	out := new(UserId)
+func (c *userServiceClient) RegisterUser(ctx context.Context, in *UserPayload, opts ...grpc.CallOption) (*UserBio, error) {
+	out := new(UserBio)
 	err := c.cc.Invoke(ctx, "/user.UserService/RegisterUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func (c *userServiceClient) Update(ctx context.Context, in *UserPayload, opts ..
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
-	RegisterUser(context.Context, *UserPayload) (*UserId, error)
+	RegisterUser(context.Context, *UserPayload) (*UserBio, error)
 	FindUsers(context.Context, *empty.Empty) (*Users, error)
 	FindByUsername(context.Context, *Username) (*UserBio, error)
 	DeleteByUsername(context.Context, *Username) (*empty.Empty, error)
@@ -99,7 +99,7 @@ type UserServiceServer interface {
 type UnimplementedUserServiceServer struct {
 }
 
-func (UnimplementedUserServiceServer) RegisterUser(context.Context, *UserPayload) (*UserId, error) {
+func (UnimplementedUserServiceServer) RegisterUser(context.Context, *UserPayload) (*UserBio, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RegisterUser not implemented")
 }
 func (UnimplementedUserServiceServer) FindUsers(context.Context, *empty.Empty) (*Users, error) {

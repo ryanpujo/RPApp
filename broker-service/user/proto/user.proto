@@ -32,7 +32,7 @@ message Username {
 }
 
 service UserService {
-  rpc RegisterUser (UserPayload) returns (UserId);
+  rpc RegisterUser (UserPayload) returns (UserBio);
   rpc FindUsers (google.protobuf.Empty) returns (Users);
   rpc FindByUsername (Username) returns (UserBio);
   rpc DeleteByUsername (Username) returns (google.protobuf.Empty);

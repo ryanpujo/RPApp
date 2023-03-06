@@ -28,12 +28,12 @@ type mockClient struct {
 	mock.Mock
 }
 
-func (mc mockClient) RegisterUser(ctx context.Context, in *models.UserPayload, opts ...grpc.CallOption) (*models.UserId, error) {
+func (mc mockClient) RegisterUser(ctx context.Context, in *models.UserPayload, opts ...grpc.CallOption) (*models.UserBio, error) {
 	args := mc.Called(ctx, in)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*models.UserId), args.Error(1)
+	return args.Get(0).(*models.UserBio), args.Error(1)
 }
 
 func (mc mockClient) FindUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*models.Users, error) {
@@ -96,18 +96,16 @@ func TestRegisterUser(t *testing.T) {
 	testTabel := map[string]struct {
 		json    []byte
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data interface{}, isError bool)
+		assert  func(t *testing.T, statusCode int, data gin.H)
 	}{
 		"success api call": {
 			json: jsonReq,
 			arrange: func(t *testing.T) {
-				client.On("RegisterUser", mock.Anything, mock.Anything).Return(&models.UserId{Id: int64(1)}, nil).Once()
+				client.On("RegisterUser", mock.Anything, mock.Anything).Return(&models.UserBio{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusCreated, statusCode)
-				require.False(t, isError)
-				require.NotNil(t, data)
-				require.Equal(t, float64(1), data.(float64))
+				require.NotZero(t, data["data"])
 			},
 		},
 		"failed call": {
@@ -115,19 +113,17 @@ func TestRegisterUser(t *testing.T) {
 			arrange: func(t *testing.T) {
 				client.On("RegisterUser", mock.Anything, mock.Anything).Return(nil, status.Error(codes.FailedPrecondition, "got an error")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.Nil(t, data)
-				require.True(t, isError)
+				require.Zero(t, data["data"])
 			},
 		},
 		"wrong validation": {
 			json:    wrongValidation,
 			arrange: func(t *testing.T) {},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.Nil(t, data)
-				require.True(t, isError)
+				require.Zero(t, data["data"])
 			},
 		},
 	}
@@ -139,10 +135,10 @@ func TestRegisterUser(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodPost, "/user", bytes.NewReader(v.json))
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res response.JsonResponse
+			var res gin.H
 			_ = json.NewDecoder(rr.Body).Decode(&res)
 
-			v.assert(t, rr.Code, res.Data, res.Error)
+			v.assert(t, rr.Code, res)
 		})
 	}
 }
