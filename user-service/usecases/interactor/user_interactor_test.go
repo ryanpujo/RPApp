@@ -32,7 +32,7 @@ func (in *mockUserRepo) FindUsers(ctx context.Context) (*models.Users, error) {
 }
 
 func (in *mockUserRepo) FindByUsername(ctx context.Context, username string) (*models.User, error) {
-	args := in.Called()
+	args := in.Called(username)
 	arg1 := args.Get(0)
 	if arg1 == nil {
 		return nil, args.Error(1)
@@ -66,7 +66,6 @@ func TestCreate(t *testing.T) {
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				mockRepo.On("FindByUsername", mock.Anything).Return(nil, errors.New("error")).Once()
 				mockRepo.On("Create", mock.Anything).Return(1, nil).Once()
 			},
 			assert: func(t *testing.T, actual *models.UserBio, err error) {
@@ -77,21 +76,10 @@ func TestCreate(t *testing.T) {
 		"fail call": {
 			arrange: func(t *testing.T) {
 				mockRepo.On("Create", mock.Anything).Return(0, errors.New("got an error")).Once()
-				mockRepo.On("FindByUsername", mock.Anything).Return(nil, errors.New("error")).Once()
 			},
 			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.Error(t, err)
 				require.Zero(t, actual)
-			},
-		},
-		"user already exist": {
-			arrange: func(t *testing.T) {
-				mockRepo.On("FindByUsername", mock.Anything).Return(&models.User{}, nil).Once()
-			},
-			assert: func(t *testing.T, actual *models.UserBio, err error) {
-				require.Zero(t, actual)
-				require.Error(t, err)
-				require.ErrorIs(t, err, interactor.ErrDuplicateKeyInDatabase)
 			},
 		},
 	}
@@ -155,14 +143,14 @@ func TestFindUsers(t *testing.T) {
 }
 
 func TestFindByUsername(t *testing.T) {
-	user := &models.User{Fname: "dabi"}
+	user := &models.User{Fname: "dabi", Username: "endeavour"}
 	testTable := map[string]struct {
 		arrange func(t *testing.T)
 		assert  func(t *testing.T, actual *models.User, err error)
 	}{
 		"succes call": {
 			arrange: func(t *testing.T) {
-				mockRepo.On("FindByUsername", mock.Anything).Return(user, nil).Once()
+				mockRepo.On("FindByUsername", mock.Anything, mock.Anything).Return(user, nil).Once()
 			},
 			assert: func(t *testing.T, actual *models.User, err error) {
 				require.NoError(t, err)
@@ -188,7 +176,7 @@ func TestFindByUsername(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			result, err := userInteractor.FindByUsername(ctx, "")
+			result, err := userInteractor.FindByUsername(ctx, "endeavour")
 
 			v.assert(t, result, err)
 		})

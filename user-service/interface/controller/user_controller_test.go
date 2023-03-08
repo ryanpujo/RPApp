@@ -11,7 +11,6 @@ import (
 
 	"github.com/spriigan/RPApp/interface/controller"
 	"github.com/spriigan/RPApp/interface/repository"
-	"github.com/spriigan/RPApp/usecases/interactor"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -110,16 +109,6 @@ func TestRegisterUser(t *testing.T) {
 			},
 			assert: func(t *testing.T, actual *models.UserBio, err error) {
 				require.Error(t, err)
-				require.Zero(t, actual)
-			},
-		},
-		"user already exist": {
-			arrange: func(t *testing.T) {
-				mockInteractor.On("Create", mock.Anything).Return(nil, interactor.ErrDuplicateKeyInDatabase)
-			},
-			assert: func(t *testing.T, actual *models.UserBio, err error) {
-				require.Error(t, err)
-				require.ErrorIs(t, err, status.Error(codes.AlreadyExists, interactor.ErrDuplicateKeyInDatabase.Error()))
 				require.Zero(t, actual)
 			},
 		},

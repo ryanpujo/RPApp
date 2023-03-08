@@ -2,13 +2,10 @@ package controller
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"github.com/spriigan/broker/helper"
 	"github.com/spriigan/broker/response"
 	"github.com/spriigan/broker/user/domain"
 	"github.com/spriigan/broker/user/user-proto/grpc/models"
@@ -28,7 +25,7 @@ type userController struct {
 	client models.UserServiceClient
 }
 type Uri struct {
-	Username string `uri:"username" binding:"required,min=6"`
+	Username string `uri:"username" binding:"required"`
 }
 
 func NewUserController(client models.UserServiceClient) *userController {
@@ -39,10 +36,6 @@ func (uc *userController) Create(c *gin.Context) {
 	var payload domain.UserPayload
 	err := c.ShouldBindJSON(&payload)
 	if err != nil {
-		var verr validator.ValidationErrors
-		if errors.As(err, &verr) {
-			c.JSON(http.StatusBadRequest, gin.H{"errors": helper.ValidationErrorUnwrap(verr)})
-		}
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -69,8 +62,7 @@ func (uc *userController) Create(c *gin.Context) {
 			panic(err)
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
-			"grpcCode": st.Code(),
-			"error":    st.Message(),
+			"error": st.Message(),
 		})
 		return
 	}
@@ -96,13 +88,10 @@ func (uc *userController) FindUsers(c *gin.Context) {
 }
 
 func (uc *userController) FindByUsername(c *gin.Context) {
-	var res response.JsonResponse
 	var uri Uri
 	err := c.ShouldBindUri(&uri)
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -110,15 +99,18 @@ func (uc *userController) FindByUsername(c *gin.Context) {
 	defer cancel()
 	user, err := uc.client.FindByUsername(ctx, &models.Username{Username: uri.Username})
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		st, ok := status.FromError(err)
+		if !ok {
+			panic(err)
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": st.Message(),
+			"code":  st.Code(),
+		})
 		return
 	}
 
-	res.Error = false
-	res.Data = user
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
 func (uc *userController) DeleteByUsername(c *gin.Context) {

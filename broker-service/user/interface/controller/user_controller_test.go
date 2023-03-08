@@ -86,7 +86,7 @@ func TestRegisterUser(t *testing.T) {
 	`)
 
 	wrongValidation := []byte(`{
-		"fname": "ryan",
+		"fname": "r",
 		"lname": "pujo",
 		"username": "ryanpujo",
 		"email": "ryanpuj@ogmail.com",
@@ -197,37 +197,37 @@ func TestFindByUsername(t *testing.T) {
 	testTabel := map[string]struct {
 		uri     string
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data interface{}, isError bool)
+		assert  func(t *testing.T, statusCode int, data gin.H)
 	}{
 		"success api call": {
 			uri: "/user/ryanpuj0",
 			arrange: func(t *testing.T) {
 				client.On("FindByUsername", mock.Anything, mock.Anything).Return(user, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusOK, statusCode)
-				require.False(t, isError)
+				require.Nil(t, data["error"])
 				require.NotNil(t, data)
 			},
 		},
 		"failed call": {
 			uri: "/user/ryanpujo",
 			arrange: func(t *testing.T) {
-				client.On("FindByUsername", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+				client.On("FindByUsername", mock.Anything, mock.Anything).Return(nil, status.Error(codes.NotFound, errors.New("got an error").Error())).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.Zero(t, data)
-				require.True(t, isError)
+				require.Zero(t, data["data"])
+				require.NotNil(t, data["error"])
 			},
 		},
 		"bad uri": {
 			uri:     "/user/rt",
 			arrange: func(t *testing.T) {},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.Nil(t, data)
-				require.True(t, isError)
+				require.Nil(t, data["data"])
+				require.NotNil(t, data["error"])
 			},
 		},
 	}
@@ -239,10 +239,10 @@ func TestFindByUsername(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, v.uri, nil)
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res response.JsonResponse
+			var res gin.H
 			_ = json.NewDecoder(rr.Body).Decode(&res)
 
-			v.assert(t, rr.Code, res.Data, res.Error)
+			v.assert(t, rr.Code, res)
 		})
 	}
 }
@@ -314,7 +314,7 @@ func TestUpdate(t *testing.T) {
 	`)
 
 	wrongValidation := []byte(`{
-		"fname": "ryan",
+		"fname": "r",
 		"lname": "pujo",
 		"username": "ryanpujo",
 		"email": "ryanpuj@ogmail.com",

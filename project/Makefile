@@ -33,6 +33,16 @@ test:
 	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out
 	@echo "finished running all test"
 
+user_test:
+	@echo "running test for user service"
+	cd ../user-service && go test ./interface/repository ./interface/controller ./usecases/interactor --coverprofile=cover.out
+	@echo "finished running all test"
+
+broker_test:
+	@echo "running test for broker service"
+	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out
+	@echo "finished running all test"
+
 coverage_show:
 	cd ../user-service && go tool cover -html=cover.out
 	cd ../broker-service && go tool cover -html=cover.out

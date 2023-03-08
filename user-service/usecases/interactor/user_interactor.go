@@ -28,10 +28,6 @@ func NewUserInteractor(repo repository.UserRepository) *userInteractor {
 }
 
 func (in *userInteractor) Create(ctx context.Context, user *models.UserPayload) (*models.UserBio, error) {
-	_, errNoUser := in.Repo.FindByUsername(ctx, user.Bio.Username)
-	if errNoUser == nil {
-		return nil, ErrDuplicateKeyInDatabase
-	}
 	hash, _ := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	user.Password = string(hash)
 	_, err := in.Repo.Create(ctx, user)
