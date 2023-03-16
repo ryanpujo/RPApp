@@ -13,7 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spriigan/broker/adapters"
 	"github.com/spriigan/broker/infrastructure/router"
-	"github.com/spriigan/broker/response"
 	"github.com/spriigan/broker/user/interface/controller"
 	"github.com/spriigan/broker/user/user-proto/grpc/models"
 	"github.com/stretchr/testify/mock"
@@ -153,26 +152,24 @@ func TestFindUsers(t *testing.T) {
 	}
 	testTabel := map[string]struct {
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data interface{}, isError bool)
+		assert  func(t *testing.T, statusCode int, data gin.H)
 	}{
 		"success api call": {
 			arrange: func(t *testing.T) {
 				client.On("FindUsers", mock.Anything, mock.Anything).Return(users, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusOK, statusCode)
-				require.False(t, isError)
-				require.NotNil(t, data)
+				require.NotNil(t, data["data"])
 			},
 		},
 		"failed call": {
 			arrange: func(t *testing.T) {
 				client.On("FindUsers", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data interface{}, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.Nil(t, data)
-				require.True(t, isError)
+				require.Nil(t, data["data"])
 			},
 		},
 	}
@@ -184,10 +181,10 @@ func TestFindUsers(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodGet, "/user", nil)
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res response.JsonResponse
+			var res gin.H
 			_ = json.NewDecoder(rr.Body).Decode(&res)
 
-			v.assert(t, rr.Code, res.Data, res.Error)
+			v.assert(t, rr.Code, res)
 		})
 	}
 }
@@ -251,18 +248,16 @@ func TestDeleteByUsername(t *testing.T) {
 	testTable := map[string]struct {
 		uri     string
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, message string, isError bool)
+		assert  func(t *testing.T, statusCode int, data gin.H)
 	}{
 		"success api call": {
 			uri: "/user/ryanpuj0",
 			arrange: func(t *testing.T) {
 				client.On("DeleteByUsername", mock.Anything, mock.Anything).Return(nil, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusOK, statusCode)
-				require.False(t, isError)
-				require.NotNil(t, message)
-				require.Equal(t, "user has been deleted", message)
+				require.Equal(t, "deleted", data["data"])
 			},
 		},
 		"failed call": {
@@ -270,20 +265,17 @@ func TestDeleteByUsername(t *testing.T) {
 			arrange: func(t *testing.T) {
 				client.On("DeleteByUsername", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.NotEmpty(t, message)
-				require.Equal(t, "got an error", message)
-				require.True(t, isError)
+				require.NotNil(t, data["error"])
 			},
 		},
 		"bad uri": {
 			uri:     "/user/rt",
 			arrange: func(t *testing.T) {},
-			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.NotEmpty(t, message)
-				require.True(t, isError)
+				require.NotNil(t, data["error"])
 			},
 		},
 	}
@@ -295,10 +287,10 @@ func TestDeleteByUsername(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodDelete, v.uri, nil)
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res response.JsonResponse
+			var res gin.H
 			_ = json.NewDecoder(rr.Body).Decode(&res)
 
-			v.assert(t, rr.Code, res.Message, res.Error)
+			v.assert(t, rr.Code, res)
 		})
 	}
 }
@@ -324,18 +316,17 @@ func TestUpdate(t *testing.T) {
 	testTable := map[string]struct {
 		json    []byte
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, message string, isError bool)
+		assert  func(t *testing.T, statusCode int, data gin.H)
 	}{
 		"succes api call": {
 			json: jsonReq,
 			arrange: func(t *testing.T) {
 				client.On("Update", mock.Anything, mock.Anything).Return(nil, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusOK, statusCode)
-				require.NotEmpty(t, message)
-				require.Equal(t, "succesfully updated", message)
-				require.False(t, isError)
+				require.NotZero(t, data["data"])
+				require.Equal(t, "updated", data["data"])
 			},
 		},
 		"fail api call": {
@@ -343,20 +334,17 @@ func TestUpdate(t *testing.T) {
 			arrange: func(t *testing.T) {
 				client.On("Update", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.NotEmpty(t, message)
-				require.Equal(t, "got an error", message)
-				require.True(t, isError)
+				require.NotZero(t, data["error"])
 			},
 		},
 		"bad json": {
 			json:    wrongValidation,
 			arrange: func(t *testing.T) {},
-			assert: func(t *testing.T, statusCode int, message string, isError bool) {
+			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.NotEmpty(t, message)
-				require.True(t, isError)
+				require.NotZero(t, data["error"])
 			},
 		},
 	}
@@ -368,10 +356,10 @@ func TestUpdate(t *testing.T) {
 			req, _ := http.NewRequest(http.MethodPatch, "/user", bytes.NewReader(v.json))
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res response.JsonResponse
+			var res gin.H
 			_ = json.NewDecoder(rr.Body).Decode(&res)
 
-			v.assert(t, rr.Code, res.Message, res.Error)
+			v.assert(t, rr.Code, res)
 		})
 	}
 }

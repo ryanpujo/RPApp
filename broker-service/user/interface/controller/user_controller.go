@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spriigan/broker/response"
 	"github.com/spriigan/broker/user/domain"
 	"github.com/spriigan/broker/user/user-proto/grpc/models"
 	"google.golang.org/grpc/status"
@@ -25,7 +24,7 @@ type userController struct {
 	client models.UserServiceClient
 }
 type Uri struct {
-	Username string `uri:"username" binding:"required"`
+	Username string `uri:"username" binding:"required,min=3"`
 }
 
 func NewUserController(client models.UserServiceClient) *userController {
@@ -72,19 +71,14 @@ func (uc *userController) Create(c *gin.Context) {
 }
 
 func (uc *userController) FindUsers(c *gin.Context) {
-	var res response.JsonResponse
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	users, err := uc.client.FindUsers(ctx, &emptypb.Empty{})
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	res.Error = false
-	res.Data = users.User
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, gin.H{"data": users.User})
 }
 
 func (uc *userController) FindByUsername(c *gin.Context) {
@@ -114,13 +108,10 @@ func (uc *userController) FindByUsername(c *gin.Context) {
 }
 
 func (uc *userController) DeleteByUsername(c *gin.Context) {
-	var res response.JsonResponse
 	var uri Uri
 	err := c.ShouldBindUri(&uri)
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -128,25 +119,18 @@ func (uc *userController) DeleteByUsername(c *gin.Context) {
 	defer cancel()
 	_, err = uc.client.DeleteByUsername(ctx, &models.Username{Username: uri.Username})
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	res.Error = false
-	res.Message = "user has been deleted"
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, gin.H{"data": "deleted"})
 }
 
 func (uc *userController) Update(c *gin.Context) {
-	var res response.JsonResponse
 	var payload domain.UserPayload
 
 	err := c.ShouldBindJSON(&payload)
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -166,13 +150,8 @@ func (uc *userController) Update(c *gin.Context) {
 
 	_, err = uc.client.Update(ctx, &payloadPB)
 	if err != nil {
-		res.Error = true
-		res.Message = err.Error()
-		c.JSON(http.StatusBadRequest, res)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	res.Error = false
-	res.Message = "succesfully updated"
-	c.JSON(http.StatusOK, res)
+	c.JSON(http.StatusOK, gin.H{"data": "updated"})
 }
