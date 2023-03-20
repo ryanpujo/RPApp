@@ -6,7 +6,7 @@ docker_run: user_binary broker_binary
 	@echo "stop all running container"
 	docker-compose down -v
 	@echo "building container(when required) and start docker containers"
-	docker-compose up --build
+	docker-compose up --build -d
 	@echo "docker image is built and started"
 
 docker_stop:

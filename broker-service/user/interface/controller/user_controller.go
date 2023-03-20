@@ -78,6 +78,10 @@ func (uc *userController) FindUsers(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if users.User == nil {
+		c.JSON(http.StatusOK, gin.H{"data": []models.UserBio{}})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"data": users.User})
 }
 
