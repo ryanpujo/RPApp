@@ -24,7 +24,7 @@ func NewUserServer(i interactor.UserInteractor) *userServer {
 func (us *userServer) RegisterUser(ctx context.Context, payload *models.UserPayload) (*models.UserBio, error) {
 	bio, err := us.interactor.Create(ctx, payload)
 	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+		return nil, status.Error(codes.AlreadyExists, err.Error())
 	}
 	return bio, nil
 }
@@ -51,7 +51,7 @@ func (us *userServer) FindByUsername(ctx context.Context, username *models.Usern
 func (us *userServer) FindUsers(ctx context.Context, empty *emptypb.Empty) (*models.Users, error) {
 	users, err := us.interactor.FindUsers(ctx)
 	if err != nil {
-		return nil, status.Error(codes.FailedPrecondition, err.Error())
+		return nil, status.Error(codes.Unknown, err.Error())
 	}
 
 	return users, nil
@@ -68,7 +68,7 @@ func (us *userServer) DeleteByUsername(ctx context.Context, username *models.Use
 func (us *userServer) Update(ctx context.Context, payload *models.UserPayload) (*emptypb.Empty, error) {
 	err := us.interactor.Update(ctx, payload)
 	if err != nil {
-		return &emptypb.Empty{}, status.Error(codes.FailedPrecondition, err.Error())
+		return nil, status.Error(codes.Unknown, err.Error())
 	}
 	return &emptypb.Empty{}, nil
 }

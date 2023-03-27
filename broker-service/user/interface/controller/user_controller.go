@@ -62,6 +62,7 @@ func (uc *userController) Create(c *gin.Context) {
 		}
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": st.Message(),
+			"code":  st.Code(),
 		})
 		return
 	}
@@ -75,7 +76,11 @@ func (uc *userController) FindUsers(c *gin.Context) {
 	defer cancel()
 	users, err := uc.client.FindUsers(ctx, &emptypb.Empty{})
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		st, ok := status.FromError(err)
+		if !ok {
+			panic(err)
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": st.Message(), "code": st.Code()})
 		return
 	}
 	if users.User == nil {
@@ -154,7 +159,11 @@ func (uc *userController) Update(c *gin.Context) {
 
 	_, err = uc.client.Update(ctx, &payloadPB)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		st, ok := status.FromError(err)
+		if !ok {
+			panic(err)
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(), "code": st.Code()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": "updated"})
