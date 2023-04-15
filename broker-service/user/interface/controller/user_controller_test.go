@@ -163,9 +163,9 @@ func TestFindUsers(t *testing.T) {
 				require.NotNil(t, data["data"])
 			},
 		},
-		"failed call": {
+		"failure call": {
 			arrange: func(t *testing.T) {
-				client.On("FindUsers", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+				client.On("FindUsers", mock.Anything, mock.Anything).Return(nil, status.Error(codes.Internal, "got an error")).Once()
 			},
 			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
@@ -332,7 +332,7 @@ func TestUpdate(t *testing.T) {
 		"fail api call": {
 			json: jsonReq,
 			arrange: func(t *testing.T) {
-				client.On("Update", mock.Anything, mock.Anything).Return(nil, errors.New("got an error")).Once()
+				client.On("Update", mock.Anything, mock.Anything).Return(nil, status.Error(codes.Internal, "got an error")).Once()
 			},
 			assert: func(t *testing.T, statusCode int, data gin.H) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
