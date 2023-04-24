@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "../../flutter/RPChatter"
+		},
+		{
+			"path": "product-service"
 		}
 	],
 	"settings": {}
