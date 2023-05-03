@@ -1,0 +1,4 @@
+mode: set
+github.com/ryanpujo/product-service/internal/repository/db.go:19.28,21.2 1 1
+github.com/ryanpujo/product-service/internal/repository/db.go:27.47,31.2 1 0
+github.com/ryanpujo/product-service/internal/repository/product.sql.go:38.96,61.2 4 1

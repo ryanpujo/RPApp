@@ -1,18 +1,14 @@
 package infrastructure
 
 import (
-	"database/sql"
 	"fmt"
-	"log"
-	"net"
-	"os"
-	"time"
-
 	_ "github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/spf13/viper"
 	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"google.golang.org/grpc"
+	"net"
 )
 
 type application struct {
@@ -20,16 +16,21 @@ type application struct {
 }
 
 func Application() application {
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath(".")
+	if err := viper.ReadInConfig(); err != nil {
+		panic(err)
+	}
 	return application{
 		Config: config{
-			GRPC_PORT: os.Getenv("GRPC_PORT"),
-			DSN:       os.Getenv("DSN"),
+			GRPC_PORT: viper.GetInt("port"),
 		},
 	}
 }
 
 func (app *application) StartGrpcServer(server models.UserServiceServer) (func(), error) {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", app.Config.GRPC_PORT))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", app.Config.GRPC_PORT))
 	if err != nil {
 		return func() {
 			lis.Close()
@@ -49,35 +50,4 @@ func (app *application) StartGrpcServer(server models.UserServiceServer) (func()
 		lis.Close()
 		s.Stop()
 	}, nil
-}
-
-func openDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return nil, err
-	}
-	if err = db.Ping(); err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
-func (app *application) ConnectToDB() *sql.DB {
-	ticker := time.NewTicker(2 * time.Second)
-	var db *sql.DB
-	var err error
-	count := 0
-
-	for db == nil {
-		db, err = openDB(app.Config.DSN)
-		if err != nil {
-			log.Println("postgres is not ready yet:", err)
-		}
-		count++
-		if count > 5 {
-			log.Fatal("cant connect to postgres:", err)
-		}
-		<-ticker.C
-	}
-	return db
 }

@@ -3,26 +3,24 @@ package infrastructure
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 )
 
 type application struct {
-	Cfg config
+	Cfg Config
 }
 
 func Application() application {
+
 	return application{
-		Cfg: config{
-			Port: os.Getenv("PORT"),
-		},
+		Cfg: LoadConfig(),
 	}
 }
 
 func (app *application) Serve(mux http.Handler) error {
 
 	srv := http.Server{
-		Addr:              fmt.Sprintf(":%s", app.Cfg.Port),
+		Addr:              fmt.Sprintf(":%d", app.Cfg.Port),
 		Handler:           mux,
 		ReadTimeout:       5 * time.Second,
 		WriteTimeout:      10 * time.Second,

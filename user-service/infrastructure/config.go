@@ -1,6 +1,6 @@
 package infrastructure
 
 type config struct {
-	GRPC_PORT string
+	GRPC_PORT int
 	DSN       string
 }

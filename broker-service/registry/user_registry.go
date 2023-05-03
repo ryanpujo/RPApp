@@ -1,6 +1,8 @@
 package registry
 
 import (
+	"fmt"
+	"github.com/spriigan/broker/infrastructure"
 	"log"
 
 	"github.com/spriigan/broker/user/grpc/client"
@@ -16,7 +18,10 @@ func (r registry) NewUserController() (controller.UserController, client.Close) 
 }
 
 func (r registry) GrpcUserClient() (models.UserServiceClient, client.Close) {
-	c, close, err := client.GrpcClient("user-service:8000", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	config := infrastructure.LoadConfig()
+	srv := config.Services["userservice"]
+	fmt.Println(config)
+	c, close, err := client.GrpcClient(fmt.Sprintf("%s:%d", srv.Address, srv.ServicePort), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
 	if err != nil {
 		log.Fatal(err)
 	}

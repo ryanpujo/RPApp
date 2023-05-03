@@ -1,0 +1,18 @@
+syntax="proto3";
+
+package product;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "grpc/product";
+
+message Product {
+  int64 Id = 1;
+  string name = 2;
+  string description = 3;
+  int64 price = 4;
+  string imageUrl = 5;
+  int32 stock = 6;
+  string category = 7;
+  google.protobuf.Timestamp createdAt = 8;
+}

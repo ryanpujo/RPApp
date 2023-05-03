@@ -26,12 +26,11 @@ proto_user:
 	cd ../user-service && protoc --go_out=user-proto --proto_path=proto proto/*.proto --go-grpc_out=user-proto
 	cd ../broker-service && protoc --go_out=user/user-proto --proto_path=user/proto user/proto/*.proto --go-grpc_out=user/user-proto
 
-test:
-	@echo "running test for user service"
-	cd ../user-service && go test ./interface/repository ./interface/controller ./usecases/interactor --coverprofile=cover.out
-	@echo "running test for broker service"
-	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out
-	@echo "finished running all test"
+proto_product:
+	cd ../product-service && protoc --go_out=product-proto --proto_path=proto proto/*.proto --go-grpc_out=product-proto
+	cd ../broker-service && protoc --go_out=product/product-proto --proto_path=product/proto product/proto/*.proto --go-grpc_out=product/product-proto
+
+test: user_test broker_test product_test
 
 user_test:
 	@echo "running test for user service"
@@ -43,6 +42,12 @@ broker_test:
 	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out
 	@echo "finished running all test"
 
+product_test:
+	@echo "run test for product service"
+	cd ../product-service && go test ./internal/repository --coverprofile=cover.out
+	@echo "finish running all test"
+
 coverage_show:
 	cd ../user-service && go tool cover -html=cover.out
 	cd ../broker-service && go tool cover -html=cover.out
+	cd ../product-service && go tool cover -html=cover.out

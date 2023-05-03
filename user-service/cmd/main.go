@@ -10,7 +10,7 @@ import (
 
 func main() {
 	app := infrastructure.Application()
-	db := app.ConnectToDB()
+	db := infrastructure.ConnectToDB()
 	defer db.Close()
 	register := registry.New(db)
 	close, err := app.StartGrpcServer(register.NewUserServer())

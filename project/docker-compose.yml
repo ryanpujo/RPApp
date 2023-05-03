@@ -4,13 +4,13 @@ services:
   user-service:
     build:
       context: ./../user-service
-      dockerfile: user-service.dockerfile
+      dockerfile: Dockerfile
     ports:
       - 4000:8000
     depends_on:
       - postgres
     environment:
-      GRPC_PORT: 8000
+      GRPC_PORT: 5000
       DSN: host=postgres port=5432 user=ryanpujo password=oke dbname=users sslmode=disable timezone=UTC connect_timeout=20
     volumes:
       - ./../user-service:/app
@@ -20,7 +20,7 @@ services:
       context: ./../broker-service
       dockerfile: broker-service.dockerfile
     ports:
-      - 4001:8000
+      - 4001:5001
     depends_on:
       - user-service
     environment:
@@ -38,4 +38,4 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./../user-service/sql/user.sql:/docker-entrypoint-initdb.d/create_tables.sql
+      - ./../user-service/sql/schema.sql:/docker-entrypoint-initdb.d/create_tables.sql

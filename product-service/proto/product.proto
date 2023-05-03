@@ -1,0 +1,33 @@
+syntax="proto3";
+
+package product;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "grpc/product";
+
+message Product {
+  int64 Id = 1;
+  string name = 2;
+  string description = 3;
+  int64 price = 4;
+  string imageUrl = 5;
+  int32 stock = 6;
+  string category = 7;
+  google.protobuf.Timestamp createdAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message ProductPayload {
+  string name = 1;
+  string description = 2;
+  int64 price = 3;
+  string imageUrl = 4;
+  int32 stock = 5;
+  string category = 6;
+}
+
+service ProductService {
+  rpc Create(ProductPayload) returns (Product)
+  
+}

@@ -5,6 +5,7 @@
 *.so
 *.dylib
 userApp
+config.yaml
 
 # Test binary, built with `go test -c`
 *.test
