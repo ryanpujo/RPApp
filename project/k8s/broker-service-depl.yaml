@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broker-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broker-service
+  template:
+    metadata:
+      labels:
+        app: broker-service
+    spec:
+      containers:
+        - name: broker-service
+          image: ryanpujo/broker-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: broker-service-srv
+spec:
+  selector:
+    app: broker-service
+  ports:
+    - port: 5001
+      targetPort: 5001
+      name: broker-service
+      protocol: TCP

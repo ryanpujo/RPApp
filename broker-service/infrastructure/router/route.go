@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"log"
+	"net/http"
 
 	firebase "firebase.google.com/go"
 	"github.com/gin-gonic/gin"
@@ -39,5 +40,8 @@ func Route(cont *adapters.AppController) *gin.Engine {
 	}
 	public := mux.Group("/public")
 	public.POST("/user", cont.User.Create)
+	public.GET("/test", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "hello from kubernetes world"})
+	})
 	return mux
 }

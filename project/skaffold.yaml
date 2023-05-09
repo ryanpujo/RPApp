@@ -1,0 +1,12 @@
+apiVersion: skaffold/v3
+kind: Config
+deploy:
+  kubectl:
+    remoteManifests:
+      - ./k8s/*
+build:
+  artifacts:
+    - image: ryanpujo/user-service
+      context: ../user-service
+    - image: ryanpujo/broker-service
+      context: ../broker-service

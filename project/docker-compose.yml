@@ -1,14 +1,14 @@
 version: '3'
 
 services:
-  user-service:
+  user-service-srv:
     build:
       context: ./../user-service
       dockerfile: Dockerfile
     ports:
       - 4000:8000
     depends_on:
-      - postgres
+      - postgres-srv
     environment:
       GRPC_PORT: 5000
       DSN: host=postgres port=5432 user=ryanpujo password=oke dbname=users sslmode=disable timezone=UTC connect_timeout=20
@@ -18,17 +18,17 @@ services:
   broker-service:
     build:
       context: ./../broker-service
-      dockerfile: broker-service.dockerfile
+      dockerfile: Dockerfile
     ports:
       - 4001:5001
     depends_on:
-      - user-service
+      - user-service-srv
     environment:
       PORT: 8000
     volumes:
       - ./../broker-service:/app
 
-  postgres:
+  postgres-srv:
     image: postgres:15.2-alpine
     restart: always
     environment:
