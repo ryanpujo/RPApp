@@ -28,6 +28,6 @@ message ProductPayload {
 }
 
 service ProductService {
-  rpc Create(ProductPayload) returns (Product)
+  rpc Create(ProductPayload) returns (Product);
   
 }

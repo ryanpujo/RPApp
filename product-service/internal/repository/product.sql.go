@@ -7,7 +7,6 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 )
 
 const createProduct = `-- name: CreateProduct :one
@@ -26,13 +25,13 @@ RETURNING id, store_id, name, description, price, image_url, stock, category_id,
 `
 
 type CreateProductParams struct {
-	StoreID     sql.NullInt32  `json:"store_id"`
-	Name        sql.NullString `json:"name"`
-	Description sql.NullString `json:"description"`
-	Price       sql.NullString `json:"price"`
-	ImageUrl    sql.NullString `json:"image_url"`
-	Stock       sql.NullInt32  `json:"stock"`
-	CategoryID  sql.NullInt32  `json:"category_id"`
+	StoreID     int32  `json:"store_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Price       string `json:"price"`
+	ImageUrl    string `json:"image_url"`
+	Stock       int32  `json:"stock"`
+	CategoryID  int32  `json:"category_id"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {

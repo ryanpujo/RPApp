@@ -91,12 +91,22 @@ func TestMain(m *testing.M) {
 }
 
 func createTables() error {
-	tableSql, err := os.ReadFile("./testdata/schema.sql")
+	tableSql, err := os.ReadFile("./testdata/products schema.sql")
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	querySql, err := os.ReadFile("./testdata/query.sql")
 	if err != nil {
 		log.Println(err)
 		return err
 	}
 	_, err = testDb.Exec(string(tableSql))
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	_, err = testDb.Exec(string(querySql))
 	if err != nil {
 		log.Println(err)
 		return err
@@ -111,11 +121,13 @@ func TestPingDb(t *testing.T) {
 
 func TestCreateProduct(t *testing.T) {
 	testProduct := repository.CreateProductParams{
-		Name:        sql.NullString{String: "MacBook", Valid: true},
-		Description: sql.NullString{String: "good product", Valid: true},
-		Price:       sql.NullString{String: "2000", Valid: true},
-		ImageUrl:    sql.NullString{String: "sjdnjdn.com", Valid: true},
-		Stock:       sql.NullInt32{Int32: 30, Valid: true},
+		Name:        "MacBook",
+		Description: "good product",
+		Price:       "2000",
+		ImageUrl:    "jdskjfd.com",
+		StoreID:     1,
+		CategoryID:  1,
+		Stock:       30,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
@@ -125,5 +137,6 @@ func TestCreateProduct(t *testing.T) {
 
 	require.NotEmpty(t, createdProduct)
 	require.Equal(t, testProduct.Name, createdProduct.Name)
-	require.Equal(t, int32(1), createdProduct.ID)
+	require.Equal(t, int64(1), createdProduct.ID)
+	require.Equal(t, testProduct.StoreID, createdProduct.StoreID)
 }
