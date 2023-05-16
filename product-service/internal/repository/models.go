@@ -9,14 +9,14 @@ import (
 )
 
 type Category struct {
-	ID               int32  `json:"id"`
+	ID               int64  `json:"id"`
 	Name             string `json:"name"`
 	Description      string `json:"description"`
 	ParentCategoryID int32  `json:"parent_category_id"`
 }
 
 type ParentCategory struct {
-	ID          int32  `json:"id"`
+	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
@@ -34,7 +34,7 @@ type Product struct {
 }
 
 type Store struct {
-	ID          int32  `json:"id"`
+	ID          int64  `json:"id"`
 	StoreName   string `json:"store_name"`
 	PhoneNumber string `json:"phone_number"`
 	Email       string `json:"email"`

@@ -58,3 +58,127 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 	)
 	return i, err
 }
+
+const deleteProduct = `-- name: DeleteProduct :exec
+DELETE FROM products WHERE id=$1
+`
+
+func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteProduct, id)
+	return err
+}
+
+const getProductById = `-- name: GetProductById :one
+SELECT p.id, p.store_id, p.name, p.description, p.price, p.image_url, p.stock, p.category_id, s.store_name, c.name AS category FROM products p JOIN stores s ON p.store_id = s.id JOIN category c ON p.category_id = c.id WHERE p.id = $1
+`
+
+type GetProductByIdRow struct {
+	ID          int64  `json:"id"`
+	StoreID     int32  `json:"store_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Price       string `json:"price"`
+	ImageUrl    string `json:"image_url"`
+	Stock       int32  `json:"stock"`
+	CategoryID  int32  `json:"category_id"`
+	StoreName   string `json:"store_name"`
+	Category    string `json:"category"`
+}
+
+func (q *Queries) GetProductById(ctx context.Context, id int64) (GetProductByIdRow, error) {
+	row := q.db.QueryRowContext(ctx, getProductById, id)
+	var i GetProductByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.StoreID,
+		&i.Name,
+		&i.Description,
+		&i.Price,
+		&i.ImageUrl,
+		&i.Stock,
+		&i.CategoryID,
+		&i.StoreName,
+		&i.Category,
+	)
+	return i, err
+}
+
+const getProducts = `-- name: GetProducts :many
+SELECT p.id, p.store_id, p.name, p.description, p.price, p.image_url, p.stock, p.category_id, s.store_name, c.name AS category FROM products p JOIN stores s ON p.store_id = s.id JOIN category c ON p.category_id = c.id
+`
+
+type GetProductsRow struct {
+	ID          int64  `json:"id"`
+	StoreID     int32  `json:"store_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Price       string `json:"price"`
+	ImageUrl    string `json:"image_url"`
+	Stock       int32  `json:"stock"`
+	CategoryID  int32  `json:"category_id"`
+	StoreName   string `json:"store_name"`
+	Category    string `json:"category"`
+}
+
+func (q *Queries) GetProducts(ctx context.Context) ([]GetProductsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getProducts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetProductsRow
+	for rows.Next() {
+		var i GetProductsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.StoreID,
+			&i.Name,
+			&i.Description,
+			&i.Price,
+			&i.ImageUrl,
+			&i.Stock,
+			&i.CategoryID,
+			&i.StoreName,
+			&i.Category,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateProduct = `-- name: UpdateProduct :exec
+UPDATE products SET store_id = $1, name = $2, description = $3, price = $4, image_url = $5, stock = $6, category_id = $7 WHERE id = $8
+`
+
+type UpdateProductParams struct {
+	StoreID     int32  `json:"store_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Price       string `json:"price"`
+	ImageUrl    string `json:"image_url"`
+	Stock       int32  `json:"stock"`
+	CategoryID  int32  `json:"category_id"`
+	ID          int64  `json:"id"`
+}
+
+func (q *Queries) UpdateProduct(ctx context.Context, arg UpdateProductParams) error {
+	_, err := q.db.ExecContext(ctx, updateProduct,
+		arg.StoreID,
+		arg.Name,
+		arg.Description,
+		arg.Price,
+		arg.ImageUrl,
+		arg.Stock,
+		arg.CategoryID,
+		arg.ID,
+	)
+	return err
+}

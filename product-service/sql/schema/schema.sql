@@ -11,21 +11,21 @@ CREATE TABLE "products" (
 );
 
 CREATE TABLE "stores" (
-  "id" serial PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "store_name" varchar NOT NULL,
   "phone_number" varchar NOT NULL,
   "email" varchar NOT NULL
 );
 
 CREATE TABLE "category" (
-  "id" serial PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "name" varchar NOT NULL,
   "description" varchar NOT NULL,
   "parent_category_id" integer NOT NULL
 );
 
 CREATE TABLE "parent_category" (
-  "id" serial PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "name" varchar NOT NULL,
   "description" varchar NOT NULL
 );
