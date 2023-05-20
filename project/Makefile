@@ -61,7 +61,7 @@ broker_test:
 
 product_test:
 	@echo "run test for product service"
-	cd ../product-service && go test ./internal/repository ./internal/service --coverprofile=cover.out
+	cd ../product-service && go test ./internal/repository ./internal/service ./internal/controller --coverprofile=cover.out
 	@echo "finish running all test"
 
 coverage_show:

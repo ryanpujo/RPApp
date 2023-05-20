@@ -1,12 +1,12 @@
 CREATE TABLE "products" (
   "id" bigserial PRIMARY KEY,
-  "store_id" integer NOT NULL,
+  "store_id" bigint NOT NULL,
   "name" varchar NOT NULL,
   "description" varchar NOT NULL,
   "price" numeric(12,2) NOT NULL,
   "image_url" varchar NOT NULL,
   "stock" integer NOT NULL,
-  "category_id" integer NOT NULL,
+  "category_id" bigint NOT NULL,
   "created_at" timestamp DEFAULT (now())
 );
 

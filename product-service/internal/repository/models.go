@@ -23,13 +23,13 @@ type ParentCategory struct {
 
 type Product struct {
 	ID          int64        `json:"id"`
-	StoreID     int32        `json:"store_id"`
+	StoreID     int64        `json:"store_id"`
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
 	Price       string       `json:"price"`
 	ImageUrl    string       `json:"image_url"`
 	Stock       int32        `json:"stock"`
-	CategoryID  int32        `json:"category_id"`
+	CategoryID  int64        `json:"category_id"`
 	CreatedAt   sql.NullTime `json:"created_at"`
 }
 

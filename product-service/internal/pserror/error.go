@@ -1,19 +1,22 @@
 package pserror
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type PsError struct {
-	err      error
-	Code     string
-	Message  string
-	HttpCode int
+	err     error
+	Code    string
+	Message string
 }
+
+var ErrNotFound = errors.New("product not found")
 
 func (ps PsError) Error() string {
 	return fmt.Sprintf("%s:%s", ps.Message, ps.err.Error())
@@ -21,8 +24,8 @@ func (ps PsError) Error() string {
 
 func ParseErrors(err error) error {
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return errors.New("product not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
 		}
 		pgErr, ok := err.(*pgconn.PgError)
 		if ok {
@@ -54,6 +57,29 @@ func ParseErrors(err error) error {
 			}
 		}
 		return err
+	}
+	return nil
+}
+
+func ToGrpcError(err error) error {
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return status.Error(codes.NotFound, err.Error())
+		}
+		psErr, ok := err.(*PsError)
+		if ok {
+			switch psErr.Code {
+			case "23503":
+				return status.Error(codes.InvalidArgument, psErr.Message)
+			case "23505":
+				return status.Error(codes.AlreadyExists, psErr.Message)
+			case "23502":
+				return status.Error(codes.InvalidArgument, psErr.Message)
+			default:
+				return status.Error(codes.Unknown, psErr.Message)
+			}
+		}
+		return status.Error(codes.Unknown, err.Error())
 	}
 	return nil
 }

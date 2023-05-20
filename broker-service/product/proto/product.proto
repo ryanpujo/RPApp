@@ -3,16 +3,58 @@ syntax="proto3";
 package product;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "grpc/product";
 
+message CreatedProduct {
+  int64 id = 1;
+  int64 storeId = 2;
+  string name = 3;
+  string description = 4;
+  string price = 5;
+  string imageUrl = 6;
+  uint32 stock = 7;
+  int64 categoryId = 8;
+  google.protobuf.Timestamp createdAt = 9;
+}
+
+message ProductPayload {
+  int64 id = 1;
+  int64 storeId = 2;
+  string name = 3;
+  string description = 4;
+  string price = 5;
+  string imageUrl = 6;
+  uint32 stock = 7;
+  int64 categoryId = 8;
+  google.protobuf.Timestamp createdAt = 9;
+}
+
 message Product {
-  int64 Id = 1;
-  string name = 2;
-  string description = 3;
-  int64 price = 4;
-  string imageUrl = 5;
-  int32 stock = 6;
-  string category = 7;
-  google.protobuf.Timestamp createdAt = 8;
+  int64 id = 1;
+  string storeName = 2;
+  string name = 3;
+  string description = 4;
+  string price = 5;
+  string imageUrl = 6;
+  uint32 stock = 7;
+  string category = 8;
+  google.protobuf.Timestamp createdAt = 9;
+}
+
+message ProductID {
+  int64 id = 1;
+}
+
+message Products {
+  repeated Product products = 1;
+}
+
+service ProductService {
+  rpc CreateProduct(ProductPayload) returns (CreatedProduct);
+  rpc GetProductById(ProductID) returns (Product);
+  rpc GetProducts (google.protobuf.Empty) returns (Products);
+  rpc DeleteProduct (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc UpdateProduct (ProductPayload) returns (google.protobuf.Empty);
 }

@@ -125,3 +125,142 @@ func TestDeleteProduct(t *testing.T) {
 		})
 	}
 }
+
+func TestGetProductById(t *testing.T) {
+	product := repository.GetProductByIdRow{
+		StoreID:     1,
+		Name:        "MacBook",
+		Description: "good book",
+		Price:       "3000",
+		ImageUrl:    "dkskmf.com",
+		Stock:       30,
+		CategoryID:  1,
+	}
+	testTable := map[string]struct {
+		arrange func(t *testing.T)
+		assert  func(t *testing.T, actual repository.GetProductByIdRow, err error)
+	}{
+		"succes call": {
+			arrange: func(t *testing.T) {
+				queriesMock.On("GetProductById", context.Background(), int64(1)).Return(product, nil).Once()
+			},
+			assert: func(t *testing.T, actual repository.GetProductByIdRow, err error) {
+				require.NotEmpty(t, actual)
+				require.NoError(t, err)
+				require.Equal(t, product.Name, actual.Name)
+			},
+		},
+		"failed call": {
+			arrange: func(t *testing.T) {
+				queriesMock.On("GetProductById", context.Background(), int64(1)).Return(nil, errors.New("product not found")).Once()
+			},
+			assert: func(t *testing.T, actual repository.GetProductByIdRow, err error) {
+				require.Empty(t, actual)
+				require.Error(t, err)
+			},
+		},
+	}
+
+	for k, v := range testTable {
+		t.Run(k, func(t *testing.T) {
+			v.arrange(t)
+
+			product, err := productService.GetProductByID(context.Background(), int64(1))
+
+			v.assert(t, product, err)
+		})
+	}
+}
+
+func TestGetProducts(t *testing.T) {
+	product := repository.GetProductsRow{
+		StoreID:     1,
+		Name:        "MacBook",
+		Description: "good book",
+		Price:       "3000",
+		ImageUrl:    "dkskmf.com",
+		Stock:       30,
+		CategoryID:  1,
+	}
+	products := []repository.GetProductsRow{product, product}
+	testTable := map[string]struct {
+		arrange func(t *testing.T)
+		assert  func(t *testing.T, actual []repository.GetProductsRow, err error)
+	}{
+		"succes call": {
+			arrange: func(t *testing.T) {
+				queriesMock.On("GetProducts", context.Background()).Return(products, nil).Once()
+			},
+			assert: func(t *testing.T, actual []repository.GetProductsRow, err error) {
+				require.NotEmpty(t, actual)
+				require.NoError(t, err)
+				require.Equal(t, len(products), len(actual))
+			},
+		},
+		"failed call": {
+			arrange: func(t *testing.T) {
+				queriesMock.On("GetProducts", context.Background()).Return(nil, errors.New("errors occur")).Once()
+			},
+			assert: func(t *testing.T, actual []repository.GetProductsRow, err error) {
+				require.Empty(t, actual)
+				require.Error(t, err)
+			},
+		},
+	}
+
+	for k, v := range testTable {
+		t.Run(k, func(t *testing.T) {
+			v.arrange(t)
+
+			products, err := productService.GetProducts(context.Background())
+
+			v.assert(t, products, err)
+		})
+	}
+}
+
+func TestUpdateProduct(t *testing.T) {
+	product := repository.UpdateProductParams{
+		ID:          1,
+		StoreID:     1,
+		Name:        "MacBook",
+		Description: "good book",
+		Price:       "3000",
+		ImageUrl:    "dkskmf.com",
+		Stock:       30,
+		CategoryID:  1,
+	}
+	testTable := map[string]struct {
+		arrange func(t *testing.T)
+		assert  func(t *testing.T, err error)
+	}{
+		"updated succefully": {
+			arrange: func(t *testing.T) {
+				queriesMock.On("GetProductById", context.Background(), int64(1)).Return(repository.GetProductByIdRow{}, nil).Once()
+				queriesMock.On("UpdateProduct", context.Background(), product).Return(nil).Once()
+			},
+			assert: func(t *testing.T, err error) {
+				require.NoError(t, err)
+			},
+		},
+		"no product found": {
+			arrange: func(t *testing.T) {
+				queriesMock.On("GetProductById", context.Background(), int64(1)).Return(repository.GetProductByIdRow{}, errors.New("product not found")).Once()
+			},
+			assert: func(t *testing.T, err error) {
+				require.Error(t, err)
+				require.Equal(t, "product not found", err.Error())
+			},
+		},
+	}
+
+	for k, v := range testTable {
+		t.Run(k, func(t *testing.T) {
+			v.arrange(t)
+
+			err := productService.UpdateProduct(context.Background(), product)
+
+			v.assert(t, err)
+		})
+	}
+}

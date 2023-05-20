@@ -7,6 +7,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createProduct = `-- name: CreateProduct :one
@@ -25,13 +26,13 @@ RETURNING id, store_id, name, description, price, image_url, stock, category_id,
 `
 
 type CreateProductParams struct {
-	StoreID     int32  `json:"store_id"`
+	StoreID     int64  `json:"store_id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Price       string `json:"price"`
 	ImageUrl    string `json:"image_url"`
 	Stock       int32  `json:"stock"`
-	CategoryID  int32  `json:"category_id"`
+	CategoryID  int64  `json:"category_id"`
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
@@ -69,20 +70,21 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
 }
 
 const getProductById = `-- name: GetProductById :one
-SELECT p.id, p.store_id, p.name, p.description, p.price, p.image_url, p.stock, p.category_id, s.store_name, c.name AS category FROM products p JOIN stores s ON p.store_id = s.id JOIN category c ON p.category_id = c.id WHERE p.id = $1
+SELECT p.id, p.store_id, p.name, p.description, p.price, p.image_url, p.stock, p.category_id, s.store_name, c.name AS category, created_at FROM products p JOIN stores s ON p.store_id = s.id JOIN category c ON p.category_id = c.id WHERE p.id = $1
 `
 
 type GetProductByIdRow struct {
-	ID          int64  `json:"id"`
-	StoreID     int32  `json:"store_id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Price       string `json:"price"`
-	ImageUrl    string `json:"image_url"`
-	Stock       int32  `json:"stock"`
-	CategoryID  int32  `json:"category_id"`
-	StoreName   string `json:"store_name"`
-	Category    string `json:"category"`
+	ID          int64        `json:"id"`
+	StoreID     int64        `json:"store_id"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	Price       string       `json:"price"`
+	ImageUrl    string       `json:"image_url"`
+	Stock       int32        `json:"stock"`
+	CategoryID  int64        `json:"category_id"`
+	StoreName   string       `json:"store_name"`
+	Category    string       `json:"category"`
+	CreatedAt   sql.NullTime `json:"created_at"`
 }
 
 func (q *Queries) GetProductById(ctx context.Context, id int64) (GetProductByIdRow, error) {
@@ -99,25 +101,27 @@ func (q *Queries) GetProductById(ctx context.Context, id int64) (GetProductByIdR
 		&i.CategoryID,
 		&i.StoreName,
 		&i.Category,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getProducts = `-- name: GetProducts :many
-SELECT p.id, p.store_id, p.name, p.description, p.price, p.image_url, p.stock, p.category_id, s.store_name, c.name AS category FROM products p JOIN stores s ON p.store_id = s.id JOIN category c ON p.category_id = c.id
+SELECT p.id, p.store_id, p.name, p.description, p.price, p.image_url, p.stock, p.category_id, s.store_name, c.name AS category, created_at FROM products p JOIN stores s ON p.store_id = s.id JOIN category c ON p.category_id = c.id
 `
 
 type GetProductsRow struct {
-	ID          int64  `json:"id"`
-	StoreID     int32  `json:"store_id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Price       string `json:"price"`
-	ImageUrl    string `json:"image_url"`
-	Stock       int32  `json:"stock"`
-	CategoryID  int32  `json:"category_id"`
-	StoreName   string `json:"store_name"`
-	Category    string `json:"category"`
+	ID          int64        `json:"id"`
+	StoreID     int64        `json:"store_id"`
+	Name        string       `json:"name"`
+	Description string       `json:"description"`
+	Price       string       `json:"price"`
+	ImageUrl    string       `json:"image_url"`
+	Stock       int32        `json:"stock"`
+	CategoryID  int64        `json:"category_id"`
+	StoreName   string       `json:"store_name"`
+	Category    string       `json:"category"`
+	CreatedAt   sql.NullTime `json:"created_at"`
 }
 
 func (q *Queries) GetProducts(ctx context.Context) ([]GetProductsRow, error) {
@@ -140,6 +144,7 @@ func (q *Queries) GetProducts(ctx context.Context) ([]GetProductsRow, error) {
 			&i.CategoryID,
 			&i.StoreName,
 			&i.Category,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -159,13 +164,13 @@ UPDATE products SET store_id = $1, name = $2, description = $3, price = $4, imag
 `
 
 type UpdateProductParams struct {
-	StoreID     int32  `json:"store_id"`
+	StoreID     int64  `json:"store_id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Price       string `json:"price"`
 	ImageUrl    string `json:"image_url"`
 	Stock       int32  `json:"stock"`
-	CategoryID  int32  `json:"category_id"`
+	CategoryID  int64  `json:"category_id"`
 	ID          int64  `json:"id"`
 }
 

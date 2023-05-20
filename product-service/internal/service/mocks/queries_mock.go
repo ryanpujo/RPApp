@@ -29,10 +29,7 @@ func (qm *QueriesMock) GetProductById(ctx context.Context, id int64) (repository
 
 func (qm *QueriesMock) GetProducts(ctx context.Context) ([]repository.GetProductsRow, error) {
 	returned := qm.Called(ctx)
-	products, ok := returned.Get(0).([]repository.GetProductsRow)
-	if !ok {
-		return nil, returned.Error(1)
-	}
+	products, _ := returned.Get(0).([]repository.GetProductsRow)
 	return products, returned.Error(1)
 }
 
