@@ -9,32 +9,32 @@ import (
 )
 
 type Category struct {
-	ID               int32  `json:"id"`
+	ID               int64  `json:"id"`
 	Name             string `json:"name"`
 	Description      string `json:"description"`
 	ParentCategoryID int32  `json:"parent_category_id"`
 }
 
 type ParentCategory struct {
-	ID          int32  `json:"id"`
+	ID          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
 type Product struct {
 	ID          int64        `json:"id"`
-	StoreID     int32        `json:"store_id"`
+	StoreID     int64        `json:"store_id"`
 	Name        string       `json:"name"`
 	Description string       `json:"description"`
 	Price       string       `json:"price"`
 	ImageUrl    string       `json:"image_url"`
 	Stock       int32        `json:"stock"`
-	CategoryID  int32        `json:"category_id"`
+	CategoryID  int64        `json:"category_id"`
 	CreatedAt   sql.NullTime `json:"created_at"`
 }
 
 type Store struct {
-	ID          int32  `json:"id"`
+	ID          int64  `json:"id"`
 	StoreName   string `json:"store_name"`
 	PhoneNumber string `json:"phone_number"`
 	Email       string `json:"email"`

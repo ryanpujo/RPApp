@@ -1,31 +1,31 @@
 CREATE TABLE "products" (
   "id" bigserial PRIMARY KEY,
-  "store_id" integer NOT NULL,
+  "store_id" bigint NOT NULL,
   "name" varchar NOT NULL,
   "description" varchar NOT NULL,
   "price" numeric(12,2) NOT NULL,
   "image_url" varchar NOT NULL,
   "stock" integer NOT NULL,
-  "category_id" integer NOT NULL,
+  "category_id" bigint NOT NULL,
   "created_at" timestamp DEFAULT (now())
 );
 
 CREATE TABLE "stores" (
-  "id" serial PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "store_name" varchar NOT NULL,
   "phone_number" varchar NOT NULL,
   "email" varchar NOT NULL
 );
 
 CREATE TABLE "category" (
-  "id" serial PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "name" varchar NOT NULL,
   "description" varchar NOT NULL,
   "parent_category_id" integer NOT NULL
 );
 
 CREATE TABLE "parent_category" (
-  "id" serial PRIMARY KEY,
+  "id" bigserial PRIMARY KEY,
   "name" varchar NOT NULL,
   "description" varchar NOT NULL
 );
