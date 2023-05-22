@@ -33,6 +33,7 @@ func TestMain(m *testing.M) {
 	lis = bufconn.Listen(1024 * 1024)
 	defer lis.Close()
 	s := grpc.NewServer()
+	defer s.Stop()
 	productServiceMock = new(controllermocks.ProductServiceMock)
 	product.RegisterProductServiceServer(s, controller.NewProductController(productServiceMock))
 	conn, err := grpc.DialContext(context.Background(), "bufnet", grpc.WithContextDialer(buffDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))

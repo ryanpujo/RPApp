@@ -28,7 +28,6 @@ message ProductPayload {
   string imageUrl = 6;
   uint32 stock = 7;
   int64 categoryId = 8;
-  google.protobuf.Timestamp createdAt = 9;
 }
 
 message Product {
@@ -55,6 +54,6 @@ service ProductService {
   rpc CreateProduct(ProductPayload) returns (CreatedProduct);
   rpc GetProductById(ProductID) returns (Product);
   rpc GetProducts (google.protobuf.Empty) returns (Products);
-  rpc DeleteProduct (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc DeleteProduct (ProductID) returns (google.protobuf.Empty);
   rpc UpdateProduct (ProductPayload) returns (google.protobuf.Empty);
 }

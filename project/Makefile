@@ -56,7 +56,7 @@ user_test:
 
 broker_test:
 	@echo "running test for broker service"
-	cd ../broker-service && go test ./user/interface/controller --coverprofile=cover.out
+	cd ../broker-service && go test ./user/interface/controller ./product/internal/grpc/client --coverprofile=cover.out
 	@echo "finished running all test"
 
 product_test:
