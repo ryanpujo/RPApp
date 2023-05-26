@@ -11,9 +11,6 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/spriigan/broker/adapters"
-	"github.com/spriigan/broker/infrastructure/router"
-	"github.com/spriigan/broker/user/interface/controller"
 	"github.com/spriigan/broker/user/user-proto/grpc/models"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -61,16 +58,12 @@ func (mc mockClient) Update(ctx context.Context, in *models.UserPayload, opts ..
 	return nil, args.Error(1)
 }
 
-var ac *adapters.AppController
 var client *mockClient
 var mux *gin.Engine
 
 func TestMain(m *testing.M) {
 	client = new(mockClient)
-	ac = &adapters.AppController{
-		User: controller.NewUserController(client),
-	}
-	mux = router.Route(ac)
+
 	os.Exit(m.Run())
 }
 
@@ -178,7 +171,7 @@ func TestFindUsers(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, _ := http.NewRequest(http.MethodGet, "/user", nil)
+			req, _ := http.NewRequest(http.MethodGet, "/auth/user", nil)
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
 			var res gin.H
@@ -208,7 +201,7 @@ func TestFindByUsername(t *testing.T) {
 			},
 		},
 		"failed call": {
-			uri: "/user/ryanpujo",
+			uri: "/auth/user/ryanpujo",
 			arrange: func(t *testing.T) {
 				client.On("FindByUsername", mock.Anything, mock.Anything).Return(nil, status.Error(codes.NotFound, errors.New("got an error").Error())).Once()
 			},

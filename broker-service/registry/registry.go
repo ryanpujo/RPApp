@@ -16,9 +16,6 @@ func New() *registry {
 	return &registry{}
 }
 
-func (r registry) NewAppController() (*adapters.AppController, client.Close) {
-	user, close := r.NewUserController()
-	return &adapters.AppController{User: user}, func() {
-		close()
-	}
+func (r registry) NewAppController() *adapters.AppController {
+	return &adapters.AppController{Product: r.NewProductController()}
 }

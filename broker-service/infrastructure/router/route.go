@@ -1,47 +1,21 @@
 package router
 
 import (
-	"context"
-	"log"
-	"net/http"
-
-	firebase "firebase.google.com/go"
 	"github.com/gin-gonic/gin"
-	"github.com/spriigan/broker/adapters"
 	"github.com/spriigan/broker/authentication"
-	"google.golang.org/api/option"
+	"github.com/spriigan/broker/registry"
 )
 
-func Route(cont *adapters.AppController) *gin.Engine {
+type Close func()
+
+func Route() (*gin.Engine, Close) {
 	mux := gin.Default()
 
-	config := firebase.Config{
-		ProjectID: "orbit-app-145b9",
-	}
-	opt := option.WithCredentialsFile("./orbit-app-145b9-firebase-adminsdk-7ycvp-6ab97f8272.json")
-	app, err := firebase.NewApp(context.Background(), &config, opt)
-	if err != nil {
-		log.Fatal(err)
-	}
+	register := registry.New()
+	appController := register.NewAppController()
+	_ = mux.Group("/product", gin.WrapH(ProductRoute(appController.Product, authentication.NewAuthentication())))
 
-	authClient, err := app.Auth(context.Background())
-	if err != nil {
-		log.Fatal(err)
+	return mux, func() {
+		appController.Close()
 	}
-	auth := authentication.NewAuthentication(authClient)
-
-	protected := mux.Group("/auth")
-	protected.Use(auth.Authenticate())
-	{
-		protected.GET("/user", cont.User.FindUsers)
-		protected.GET("/user/:username", cont.User.FindByUsername)
-		protected.DELETE("/user/:username", cont.User.DeleteByUsername)
-		protected.PATCH("/user", cont.User.Update)
-	}
-	public := mux.Group("/public")
-	public.POST("/user", cont.User.Create)
-	public.GET("/test", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "hello from kubernetes world"})
-	})
-	return mux
 }

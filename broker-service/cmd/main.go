@@ -5,15 +5,13 @@ import (
 
 	"github.com/spriigan/broker/infrastructure"
 	"github.com/spriigan/broker/infrastructure/router"
-	"github.com/spriigan/broker/registry"
 )
 
 func main() {
 	app := infrastructure.Application()
-	register := registry.New()
-	appController, close := register.NewAppController()
+	route, close := router.Route()
 	defer close()
-	if err := app.Serve(router.Route(appController)); err != nil {
+	if err := app.Serve(route); err != nil {
 		log.Fatal(err)
 	}
 }

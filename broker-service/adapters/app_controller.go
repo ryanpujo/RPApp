@@ -1,7 +1,11 @@
 package adapters
 
-import "github.com/spriigan/broker/user/interface/controller"
+import "github.com/spriigan/broker/interface/controller"
 
 type AppController struct {
-	User interface{ controller.UserController }
+	Product controller.ProductCrud
+}
+
+func (app *AppController) Close() {
+	app.Product.Close()
 }

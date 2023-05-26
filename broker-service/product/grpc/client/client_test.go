@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/spriigan/broker/product/internal/grpc/client/mock/server"
+	"github.com/spriigan/broker/product/grpc/client/mock/server"
 	"github.com/spriigan/broker/product/product-proto/grpc/product"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

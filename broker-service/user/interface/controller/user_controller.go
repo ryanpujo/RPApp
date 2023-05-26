@@ -71,7 +71,7 @@ func (uc *userController) Create(c *gin.Context) {
 	})
 }
 
-func (uc *userController) FindUsers(c *gin.Context) {
+func (uc *userController) GetMany(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	users, err := uc.client.FindUsers(ctx, &emptypb.Empty{})
@@ -90,7 +90,7 @@ func (uc *userController) FindUsers(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": users.User})
 }
 
-func (uc *userController) FindByUsername(c *gin.Context) {
+func (uc *userController) GetById(c *gin.Context) {
 	var uri Uri
 	err := c.ShouldBindUri(&uri)
 	if err != nil {
@@ -116,7 +116,7 @@ func (uc *userController) FindByUsername(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
-func (uc *userController) DeleteByUsername(c *gin.Context) {
+func (uc *userController) Delete(c *gin.Context) {
 	var uri Uri
 	err := c.ShouldBindUri(&uri)
 	if err != nil {

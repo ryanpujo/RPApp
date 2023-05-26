@@ -1,22 +1,47 @@
 package authentication
 
 import (
+	"context"
+	"log"
 	"net/http"
 	"strings"
 
+	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
+	"google.golang.org/api/option"
 )
 
-type authentication struct {
-	authClient *auth.Client
+type Authentication struct {
+	AuthClient AuthClient
 }
 
-func NewAuthentication(auth *auth.Client) *authentication {
-	return &authentication{auth}
+type Authenticator interface {
+	Authenticate() gin.HandlerFunc
 }
 
-func (a *authentication) Authenticate() gin.HandlerFunc {
+type AuthClient interface {
+	VerifyIDToken(ctx context.Context, id string) (*auth.Token, error)
+}
+
+func NewAuthentication() *Authentication {
+	config := firebase.Config{
+		ProjectID: "orbit-app-145b9",
+	}
+	opt := option.WithCredentialsFile("./orbit-app-145b9-firebase-adminsdk-7ycvp-6ab97f8272.json")
+	app, err := firebase.NewApp(context.Background(), &config, opt)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	authClient, err := app.Auth(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &Authentication{AuthClient: authClient}
+}
+
+func (a *Authentication) Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		// get authorization header
@@ -28,7 +53,7 @@ func (a *authentication) Authenticate() gin.HandlerFunc {
 		idToken := getTokenFromAuthHeader(authHeader)
 
 		// verify the token
-		_, err := a.authClient.VerifyIDToken(c, idToken)
+		_, err := a.AuthClient.VerifyIDToken(c, idToken)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unathorized"})
 			return
