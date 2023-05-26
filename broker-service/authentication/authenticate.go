@@ -13,14 +13,14 @@ import (
 )
 
 type Authentication struct {
-	AuthClient AuthClient
+	AuthClient IdTokenVerifier
 }
 
 type Authenticator interface {
 	Authenticate() gin.HandlerFunc
 }
 
-type AuthClient interface {
+type IdTokenVerifier interface {
 	VerifyIDToken(ctx context.Context, id string) (*auth.Token, error)
 }
 
