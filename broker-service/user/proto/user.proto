@@ -1,27 +1,25 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package user;
 
 option go_package = "/userpb";
 
-message UserBio {
-  int64 Id =1;
-  string Fname =2;
-  string Lname =3;
-  string Username =4;
-}
-
 message User {
-  int64 Id =1;
-  string Fname =2;
-  string Lname =3;
-  string Username =4;
+  int64 id =1;
+  string firstName =2;
+  string lastName =3;
+  string username =4;
+  google.protobuf.Timestamp createdAt = 5; 
 }
 
 message UserPayload {
-  UserBio bio = 1;
+  int64 id = 1;
+  string firstName = 2;
+  string lastName = 3;
+  string username = 4;
 }
 
 message UserId {
@@ -29,11 +27,7 @@ message UserId {
 }
 
 message Users {
-  repeated UserBio users = 1;
-}
-
-message Username {
-  string username = 1;
+  repeated User users = 1;
 }
 
 message Limit {
@@ -41,9 +35,9 @@ message Limit {
 }
 
 service UserService {
-  rpc CreateUser (UserPayload) returns (UserBio);
+  rpc CreateUser (UserPayload) returns (User);
   rpc GetMany (Limit) returns (Users);
-  rpc GetById (UserId) returns (UserBio);
+  rpc GetById (UserId) returns (User);
   rpc DeleteById (UserId) returns (google.protobuf.Empty);
-  rpc Update (UserPayload) returns (google.protobuf.Empty);
+  rpc UpdateById (UserPayload) returns (google.protobuf.Empty);
 }
