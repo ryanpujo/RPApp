@@ -30,8 +30,8 @@ var userTest = repository.User{
 	Username:  "ryanpujo",
 }
 var payload = &userpb.UserPayload{
-	FirstName: "ryan",
-	LastName:  "pujo",
+	Firstname: "ryan",
+	Lastname:  "pujo",
 	Username:  "ryanpujo",
 }
 
@@ -221,8 +221,8 @@ func TestUpdateById(t *testing.T) {
 	}
 	payload := userpb.UserPayload{
 		Id:        1,
-		FirstName: "ryan",
-		LastName:  "pujo",
+		Firstname: "ryan",
+		Lastname:  "pujo",
 		Username:  "ryanpujo",
 	}
 	testTable := map[string]struct {

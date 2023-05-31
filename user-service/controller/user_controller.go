@@ -22,8 +22,8 @@ func NewUserController(serv service.UserService) *userController {
 
 func (c userController) CreateUser(ctx context.Context, payload *userpb.UserPayload) (*userpb.User, error) {
 	arg := repository.CreateUserParams{
-		FirstName: payload.FirstName,
-		LastName:  payload.LastName,
+		FirstName: payload.Firstname,
+		LastName:  payload.Lastname,
 		Username:  payload.Username,
 	}
 
@@ -33,8 +33,8 @@ func (c userController) CreateUser(ctx context.Context, payload *userpb.UserPayl
 	}
 	user := &userpb.User{
 		Id:        createdUser.ID,
-		FirstName: createdUser.FirstName,
-		LastName:  createdUser.LastName,
+		Firstname: createdUser.FirstName,
+		Lastname:  createdUser.LastName,
 		Username:  createdUser.Username,
 		CreatedAt: timestamppb.New(createdUser.CreatedAt.Time),
 	}
@@ -54,8 +54,8 @@ func (c userController) GetById(ctx context.Context, id *userpb.UserId) (*userpb
 	}
 	found := &userpb.User{
 		Id:        user.ID,
-		FirstName: user.FirstName,
-		LastName:  user.LastName,
+		Firstname: user.FirstName,
+		Lastname:  user.LastName,
 		Username:  user.Username,
 		CreatedAt: timestamppb.New(user.CreatedAt.Time),
 	}
@@ -74,8 +74,8 @@ func (c userController) GetMany(ctx context.Context, limit *userpb.Limit) (*user
 	for _, v := range found {
 		user := userpb.User{
 			Id:        v.ID,
-			FirstName: v.FirstName,
-			LastName:  v.LastName,
+			Firstname: v.FirstName,
+			Lastname:  v.LastName,
 			Username:  v.Username,
 			CreatedAt: timestamppb.New(v.CreatedAt.Time),
 		}
@@ -87,8 +87,8 @@ func (c userController) GetMany(ctx context.Context, limit *userpb.Limit) (*user
 
 func (c userController) UpdateById(ctx context.Context, payload *userpb.UserPayload) (*emptypb.Empty, error) {
 	arg := repository.UpdateByIDParams{
-		FirstName: payload.FirstName,
-		LastName:  payload.LastName,
+		FirstName: payload.Firstname,
+		LastName:  payload.Lastname,
 		Username:  payload.Username,
 		ID:        payload.Id,
 	}

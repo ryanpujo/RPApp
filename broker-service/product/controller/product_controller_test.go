@@ -13,6 +13,7 @@ import (
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/spriigan/broker/authentication"
+	"github.com/spriigan/broker/authentication/authmock"
 	"github.com/spriigan/broker/infrastructure/router"
 	"github.com/spriigan/broker/product/controller"
 	"github.com/spriigan/broker/product/controller/mocks"
@@ -26,14 +27,14 @@ import (
 var (
 	mockClient *mocks.MockClient
 	mux        *gin.Engine
-	mockAuth   *mocks.MockAuth
+	mockAuth   *authmock.MockAuth
 )
 
 func TestMain(m *testing.M) {
 	mockClient = new(mocks.MockClient)
 	productController := controller.NewProductController(mockClient)
 	defer productController.Close()
-	mockAuth = new(mocks.MockAuth)
+	mockAuth = new(authmock.MockAuth)
 	auth := &authentication.Authentication{AuthClient: mockAuth}
 	mux = router.ProductRoute(productController, auth)
 	os.Exit(m.Run())

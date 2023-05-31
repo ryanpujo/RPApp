@@ -13,7 +13,12 @@ func Route() (*gin.Engine, Close) {
 
 	register := registry.New()
 	appController := register.NewAppController()
-	_ = mux.Group("/product", gin.WrapH(ProductRoute(appController.Product, authentication.NewAuthentication())))
+
+	productRoute := mux.Group("/product")
+	productRoute.Use(gin.WrapH(ProductRoute(appController.Product, authentication.NewAuthentication())))
+
+	userRoute := mux.Group("/user")
+	userRoute.Use(gin.WrapH(UserRoute(appController.User, authentication.NewAuthentication())))
 
 	return mux, func() {
 		appController.Close()

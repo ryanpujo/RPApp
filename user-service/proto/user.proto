@@ -9,16 +9,16 @@ option go_package = "/userpb";
 
 message User {
   int64 id =1;
-  string firstName =2;
-  string lastName =3;
+  string firstname =2;
+  string lastname =3;
   string username =4;
   google.protobuf.Timestamp createdAt = 5; 
 }
 
 message UserPayload {
   int64 id = 1;
-  string firstName = 2;
-  string lastName = 3;
+  string firstname = 2;
+  string lastname = 3;
   string username = 4;
 }
 
