@@ -1,31 +1,25 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 package user;
 
-option go_package = "/grpc/models";
-
-message UserBio {
-  int64 Id =1;
-  string Fname =2;
-  string Lname =3;
-  string Username =4;
-  string Email =5;
-}
+option go_package = "/userpb";
 
 message User {
-  int64 Id =1;
-  string Fname =2;
-  string Lname =3;
-  string Username =4;
-  string Email =5;
-  string password = 6;
+  int64 id =1;
+  string firstname =2;
+  string lastname =3;
+  string username =4;
+  google.protobuf.Timestamp createdAt = 5; 
 }
 
 message UserPayload {
-  UserBio bio = 1;
-  string password =2;
+  int64 id = 1;
+  string firstname = 2;
+  string lastname = 3;
+  string username = 4;
 }
 
 message UserId {
@@ -33,17 +27,17 @@ message UserId {
 }
 
 message Users {
-  repeated UserBio user = 1;
+  repeated User users = 1;
 }
 
-message Username {
-  string username = 1;
+message Limit {
+  int32 limit = 1;
 }
 
 service UserService {
-  rpc RegisterUser (UserPayload) returns (UserBio);
-  rpc FindUsers (google.protobuf.Empty) returns (Users);
-  rpc FindByUsername (Username) returns (UserBio);
-  rpc DeleteByUsername (Username) returns (google.protobuf.Empty);
-  rpc Update (UserPayload) returns (google.protobuf.Empty);
+  rpc CreateUser (UserPayload) returns (User);
+  rpc GetMany (Limit) returns (Users);
+  rpc GetById (UserId) returns (User);
+  rpc DeleteById (UserId) returns (google.protobuf.Empty);
+  rpc UpdateById (UserPayload) returns (google.protobuf.Empty);
 }

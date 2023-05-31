@@ -1,21 +1,34 @@
 package client
 
 import (
-	"github.com/spriigan/broker/user/user-proto/grpc/models"
+	"fmt"
+	"io"
+
+	"github.com/spriigan/broker/infrastructure"
+	"github.com/spriigan/broker/user/user-proto/userpb"
 	"google.golang.org/grpc"
 )
 
-type Close func()
+type UserClientCloser interface {
+	userpb.UserServiceClient
+	io.Closer
+}
 
-func GrpcClient(addr string, opts ...grpc.DialOption) (models.UserServiceClient, Close, error) {
-	conn, err := grpc.Dial(addr, opts...)
+type userClient struct {
+	userpb.UserServiceClient
+	conn *grpc.ClientConn
+}
+
+func NewUserClient() *userClient {
+	config := infrastructure.LoadConfig()
+	service := config.Services["productservice"]
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", service.Address, service.ServicePort))
 	if err != nil {
-		return nil, func() {
-			conn.Close()
-		}, err
+		panic(err)
 	}
-	return models.NewUserServiceClient(conn), func() {
-		conn.Close()
-	}, nil
+	return &userClient{UserServiceClient: userpb.NewUserServiceClient(conn), conn: conn}
+}
 
+func (u *userClient) Close() error {
+	return u.conn.Close()
 }

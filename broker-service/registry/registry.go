@@ -2,11 +2,10 @@ package registry
 
 import (
 	"github.com/spriigan/broker/adapters"
-	"github.com/spriigan/broker/user/grpc/client"
 )
 
 type Registry interface {
-	NewAppController() (*adapters.AppController, client.Close)
+	NewAppController() *adapters.AppController
 }
 
 type registry struct {
@@ -17,5 +16,8 @@ func New() *registry {
 }
 
 func (r registry) NewAppController() *adapters.AppController {
-	return &adapters.AppController{Product: r.NewProductController()}
+	return &adapters.AppController{
+		Product: r.NewProductController(),
+		User:    r.NewUserController(),
+	}
 }

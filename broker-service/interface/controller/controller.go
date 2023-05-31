@@ -7,11 +7,20 @@ import (
 )
 
 type ProductCrud interface {
+	SimpleCrud
+	io.Closer
+}
+
+type SimpleCrud interface {
 	ByIdGetter
 	Creator
 	ByIdDeletion
 	ByIdUpdate
 	ManyGetter
+}
+
+type UserCrudCloser interface {
+	SimpleCrud
 	io.Closer
 }
 

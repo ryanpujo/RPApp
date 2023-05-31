@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/spriigan/broker/response"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -14,6 +15,7 @@ import (
 func Handle(c *gin.Context, err error) {
 
 	var verr validator.ValidationErrors
+	var res response.JsonRes
 	if errors.As(err, &verr) {
 		errs := make(map[string]string)
 
@@ -24,26 +26,28 @@ func Handle(c *gin.Context, err error) {
 			}
 			errs[f.Field()] = err
 		}
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": errs})
+		res.Errors = errs
+		c.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 	st, ok := status.FromError(err)
 	if ok {
-		gerr := gin.H{"error": st.Message()}
+		res.Error = st.Message()
 		switch st.Code() {
 		case codes.AlreadyExists:
-			c.AbortWithStatusJSON(http.StatusConflict, gerr)
+			c.AbortWithStatusJSON(http.StatusConflict, res)
 			return
 		case codes.NotFound:
-			c.AbortWithStatusJSON(http.StatusNotFound, gerr)
+			c.AbortWithStatusJSON(http.StatusNotFound, res)
 			return
 		case codes.InvalidArgument:
-			c.AbortWithStatusJSON(http.StatusBadRequest, gerr)
+			c.AbortWithStatusJSON(http.StatusBadRequest, res)
 			return
 		default:
-			c.AbortWithStatusJSON(http.StatusInternalServerError, gerr)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, res)
 			return
 		}
 	}
-	c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	res.Error = err.Error()
+	c.AbortWithStatusJSON(http.StatusInternalServerError, res)
 }

@@ -9,6 +9,7 @@ import (
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/spriigan/broker/response"
 	"google.golang.org/api/option"
 )
 
@@ -43,11 +44,12 @@ func NewAuthentication() *Authentication {
 
 func (a *Authentication) Authenticate() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
+		var res response.JsonRes
+		res.Error = "unauthorized"
 		// get authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unathorized"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
 			return
 		}
 		idToken := getTokenFromAuthHeader(authHeader)
@@ -55,7 +57,7 @@ func (a *Authentication) Authenticate() gin.HandlerFunc {
 		// verify the token
 		_, err := a.AuthClient.VerifyIDToken(c, idToken)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unathorized"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, res)
 			return
 		}
 
