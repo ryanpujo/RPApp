@@ -30,13 +30,14 @@ message Users {
   repeated User users = 1;
 }
 
-message Limit {
+message GetMAnyArgs {
   int32 limit = 1;
+  int32 page = 2;
 }
 
 service UserService {
   rpc CreateUser (UserPayload) returns (User);
-  rpc GetMany (Limit) returns (Users);
+  rpc GetMany (GetMAnyArgs) returns (Users);
   rpc GetById (UserId) returns (User);
   rpc DeleteById (UserId) returns (google.protobuf.Empty);
   rpc UpdateById (UserPayload) returns (google.protobuf.Empty);

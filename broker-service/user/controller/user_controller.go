@@ -135,13 +135,14 @@ func (u userController) UpdateById(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-type Limit struct {
-	Limit int32 `uri:"limit" binding:"gt=0"`
+type QueryParams struct {
+	Limit int32 `form:"limit" binding:"gt=0"`
+	Page  int32 `form:"page" binding:"gt=0"`
 }
 
 func (u userController) GetMany(c *gin.Context) {
-	var uri Limit
-	if err := c.ShouldBindUri(&uri); err != nil {
+	var Query QueryParams
+	if err := c.ShouldBindQuery(&Query); err != nil {
 		er.Handle(c, err)
 		return
 	}
@@ -149,7 +150,7 @@ func (u userController) GetMany(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c, time.Second*1)
 	defer cancel()
 
-	result, err := u.c.GetMany(ctx, &userpb.Limit{Limit: uri.Limit})
+	result, err := u.c.GetMany(ctx, &userpb.GetMAnyArgs{Limit: Query.Limit, Page: Query.Page})
 	if err != nil {
 		er.Handle(c, err)
 		return

@@ -187,7 +187,7 @@ func TestGetMany(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			actual, err := userService.GetMany(context.Background(), int32(3))
+			actual, err := userService.GetMany(context.Background(), int32(5), int32(5))
 
 			v.assert(t, actual, err)
 		})

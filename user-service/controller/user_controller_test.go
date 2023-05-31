@@ -205,7 +205,7 @@ func TestGetMany(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			users, err := client.GetMany(context.Background(), &userpb.Limit{Limit: 3})
+			users, err := client.GetMany(context.Background(), &userpb.GetMAnyArgs{Limit: 3, Page: 3})
 
 			v.assert(t, users, err)
 		})

@@ -11,7 +11,7 @@ type UserService interface {
 	CreateUser(ctx context.Context, arg repository.CreateUserParams) (repository.User, error)
 	DeleteByID(ctx context.Context, id int64) error
 	GetById(ctx context.Context, id int64) (repository.User, error)
-	GetMany(ctx context.Context, limit int32) ([]repository.User, error)
+	GetMany(ctx context.Context, limit, page int32) ([]repository.User, error)
 	UpdateByID(ctx context.Context, arg repository.UpdateByIDParams) error
 }
 
@@ -38,8 +38,12 @@ func (u userService) GetById(ctx context.Context, id int64) (repository.User, er
 	return user, usererror.ParseErrors(err)
 }
 
-func (u userService) GetMany(ctx context.Context, limit int32) ([]repository.User, error) {
-	users, err := u.query.GetMany(ctx, limit)
+func (u userService) GetMany(ctx context.Context, limit, page int32) ([]repository.User, error) {
+	args := repository.GetManyParams{
+		Limit:  limit,
+		Offset: (page - 1) * limit,
+	}
+	users, err := u.query.GetMany(ctx, args)
 	return users, usererror.ParseErrors(err)
 }
 

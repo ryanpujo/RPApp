@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"database/sql"
-	"github.com/spf13/viper"
 	"log"
 	"time"
 )
@@ -20,14 +19,14 @@ func openDB(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-func ConnectToDB() *sql.DB {
+func (app application) ConnectToDB() *sql.DB {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 	var err error
 	count := 0
 
 	for db == nil {
-		db, err = openDB(viper.GetString("dsn"))
+		db, err = openDB(Cfg.DSN)
 		if err != nil {
 			log.Println("postgres is not ready yet:", err)
 		}

@@ -64,11 +64,16 @@ func (q *Queries) GetById(ctx context.Context, id int64) (User, error) {
 }
 
 const getMany = `-- name: GetMany :many
-SELECT "id", "first_name", "last_name", "username", "created_at" FROM users LIMIT $1
+SELECT "id", "first_name", "last_name", "username", "created_at" FROM users LIMIT $1 OFFSET $2
 `
 
-func (q *Queries) GetMany(ctx context.Context, limit int32) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, getMany, limit)
+type GetManyParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) GetMany(ctx context.Context, arg GetManyParams) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, getMany, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

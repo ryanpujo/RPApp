@@ -51,12 +51,12 @@ test: user_test broker_test product_test
 
 user_test:
 	@echo "running test for user service"
-	cd ../user-service && go test ./interface/repository ./interface/controller ./usecases/interactor --coverprofile=cover.out
+	cd ../user-service && go test ./repository ./controller ./service --coverprofile=cover.out
 	@echo "finished running all test"
 
 broker_test:
 	@echo "running test for broker service"
-	cd ../broker-service && go test ./user/interface/controller ./product/grpc/client  ./product/controller --coverprofile=cover.out
+	cd ../broker-service && go test ./user/controller ./product/grpc/client  ./product/controller --coverprofile=cover.out
 	@echo "finished running all test"
 
 product_test:

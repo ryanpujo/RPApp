@@ -166,7 +166,7 @@ func TestGetMany(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			actual, err := client.GetMany(context.Background(), &userpb.Limit{Limit: 3})
+			actual, err := client.GetMany(context.Background(), &userpb.GetMAnyArgs{Limit: 3, Page: 3})
 
 			v.assert(t, actual, err)
 		})

@@ -135,7 +135,7 @@ func TestGetById(t *testing.T) {
 }
 
 func TestGetMany(t *testing.T) {
-	users, err := userRepo.GetMany(context.Background(), 3)
+	users, err := userRepo.GetMany(context.Background(), repository.GetManyParams{Limit: 3, Offset: 0})
 	require.NoError(t, err)
 	require.NotEmpty(t, users)
 	require.Equal(t, 1, len(users))

@@ -19,7 +19,7 @@ func (m *MockClient) CreateUser(ctx context.Context, in *userpb.UserPayload, opt
 	return user, args.Error(1)
 }
 
-func (m *MockClient) GetMany(ctx context.Context, in *userpb.Limit, opts ...grpc.CallOption) (*userpb.Users, error) {
+func (m *MockClient) GetMany(ctx context.Context, in *userpb.GetMAnyArgs, opts ...grpc.CallOption) (*userpb.Users, error) {
 	args := m.Called(ctx, in)
 	user, _ := args.Get(0).(*userpb.Users)
 	return user, args.Error(1)

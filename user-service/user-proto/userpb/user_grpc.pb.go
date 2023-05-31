@@ -24,7 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *UserPayload, opts ...grpc.CallOption) (*User, error)
-	GetMany(ctx context.Context, in *Limit, opts ...grpc.CallOption) (*Users, error)
+	GetMany(ctx context.Context, in *GetMAnyArgs, opts ...grpc.CallOption) (*Users, error)
 	GetById(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*User, error)
 	DeleteById(ctx context.Context, in *UserId, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	UpdateById(ctx context.Context, in *UserPayload, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -47,7 +47,7 @@ func (c *userServiceClient) CreateUser(ctx context.Context, in *UserPayload, opt
 	return out, nil
 }
 
-func (c *userServiceClient) GetMany(ctx context.Context, in *Limit, opts ...grpc.CallOption) (*Users, error) {
+func (c *userServiceClient) GetMany(ctx context.Context, in *GetMAnyArgs, opts ...grpc.CallOption) (*Users, error) {
 	out := new(Users)
 	err := c.cc.Invoke(ctx, "/user.UserService/GetMany", in, out, opts...)
 	if err != nil {
@@ -88,7 +88,7 @@ func (c *userServiceClient) UpdateById(ctx context.Context, in *UserPayload, opt
 // for forward compatibility
 type UserServiceServer interface {
 	CreateUser(context.Context, *UserPayload) (*User, error)
-	GetMany(context.Context, *Limit) (*Users, error)
+	GetMany(context.Context, *GetMAnyArgs) (*Users, error)
 	GetById(context.Context, *UserId) (*User, error)
 	DeleteById(context.Context, *UserId) (*emptypb.Empty, error)
 	UpdateById(context.Context, *UserPayload) (*emptypb.Empty, error)
@@ -102,7 +102,7 @@ type UnimplementedUserServiceServer struct {
 func (UnimplementedUserServiceServer) CreateUser(context.Context, *UserPayload) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
-func (UnimplementedUserServiceServer) GetMany(context.Context, *Limit) (*Users, error) {
+func (UnimplementedUserServiceServer) GetMany(context.Context, *GetMAnyArgs) (*Users, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMany not implemented")
 }
 func (UnimplementedUserServiceServer) GetById(context.Context, *UserId) (*User, error) {
@@ -146,7 +146,7 @@ func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _UserService_GetMany_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Limit)
+	in := new(GetMAnyArgs)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func _UserService_GetMany_Handler(srv interface{}, ctx context.Context, dec func
 		FullMethod: "/user.UserService/GetMany",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetMany(ctx, req.(*Limit))
+		return srv.(UserServiceServer).GetMany(ctx, req.(*GetMAnyArgs))
 	}
 	return interceptor(ctx, in, info, handler)
 }

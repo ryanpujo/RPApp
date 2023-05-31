@@ -62,8 +62,8 @@ func (c userController) GetById(ctx context.Context, id *userpb.UserId) (*userpb
 	return found, nil
 }
 
-func (c userController) GetMany(ctx context.Context, limit *userpb.Limit) (*userpb.Users, error) {
-	found, err := c.userService.GetMany(ctx, limit.Limit)
+func (c userController) GetMany(ctx context.Context, args *userpb.GetMAnyArgs) (*userpb.Users, error) {
+	found, err := c.userService.GetMany(ctx, args.Limit, args.Page)
 	if err != nil {
 		return nil, usererror.ToGrpcError(err)
 	}

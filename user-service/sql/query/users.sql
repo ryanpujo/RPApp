@@ -10,7 +10,7 @@ RETURNING *;
 SELECT "id", "first_name", "last_name", "username", "created_at" FROM users WHERE id = $1;
 
 -- name: GetMany :many
-SELECT "id", "first_name", "last_name", "username", "created_at" FROM users LIMIT $1;
+SELECT "id", "first_name", "last_name", "username", "created_at" FROM users LIMIT $1 OFFSET $2;
 
 -- name: DeleteByID :exec
 DELETE FROM users WHERE id = $1;

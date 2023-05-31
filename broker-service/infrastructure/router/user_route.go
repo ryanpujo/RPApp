@@ -12,7 +12,7 @@ func UserRoute(contr controller.UserCrudCloser, auth authentication.Authenticato
 	mux.Use(auth.Authenticate())
 	mux.POST("/create", contr.Create)
 	mux.GET("/:id", contr.GetById)
-	mux.GET("/users/:limit", contr.GetMany)
+	mux.GET("/users", contr.GetMany)
 	mux.DELETE("/delete/:id", contr.DeleteById)
 	mux.PATCH("/update", contr.UpdateById)
 	return mux

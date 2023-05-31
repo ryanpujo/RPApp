@@ -344,7 +344,7 @@ func TestGetMany(t *testing.T) {
 		assert  func(t *testing.T, statusCode int, json response.JsonRes)
 	}{
 		"got users": {
-			uri: "/users/1",
+			uri: "/users?page=1&limit=10",
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("GetMany", mock.Anything, mock.Anything).Return(users, nil).Once()
@@ -356,7 +356,7 @@ func TestGetMany(t *testing.T) {
 			},
 		},
 		"failed to get users": {
-			uri: "/users/1",
+			uri: "/users?page=1&limit=10",
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("GetMany", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
@@ -368,7 +368,7 @@ func TestGetMany(t *testing.T) {
 			},
 		},
 		"validation error": {
-			uri: "/users/0",
+			uri: "/users?page=1&limit=0",
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 			},
@@ -379,7 +379,7 @@ func TestGetMany(t *testing.T) {
 			},
 		},
 		"unauthorized": {
-			uri: "/users/1",
+			uri: "/users?page=1&limit=10",
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 			},
