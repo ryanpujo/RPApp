@@ -9,3 +9,10 @@ type User struct {
 	Username  string       `json:"username" binding:"required,min=3"`
 	CreatedAt sql.NullTime `json:"created_at"`
 }
+
+type UserToCreate struct {
+	FirstName string `json:"first_name" binding:"required,min=3"`
+	LastName  string `json:"last_name" binding:"required,min=3"`
+	Email     string `json:"email" binding:"required,email"`
+	Password  string `json:"password" binding:"required"`
+}

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-product
+spec:
+  selector:
+    matchLabels:
+      app: postgres-product
+  template:
+    metadata:
+      labels:
+        app: postgres-product
+    spec:
+      containers:
+      - name: postgres-product
+        image: postgres:15.2-alpine
+        envFrom:
+          - configMapRef:
+              name: postgres-product-configmap
+        volumeMounts:
+          - mountPath: "/var/lib/postgres/data"
+            name: postgres-data
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-product-srv
+spec:
+  selector:
+    app: postgres-product
+  ports:
+  - port: 5432
+    targetPort: 5432
+    name: postgres-product
+    protocol: TCP

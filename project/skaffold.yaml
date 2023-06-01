@@ -10,3 +10,5 @@ build:
       context: ../user-service
     - image: ryanpujo/broker-service
       context: ../broker-service
+    - image: ryanpujo/product-service
+      context: ../product-service

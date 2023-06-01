@@ -7,6 +7,7 @@ import (
 	"github.com/spriigan/broker/infrastructure"
 	"github.com/spriigan/broker/user/user-proto/userpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type UserClientCloser interface {
@@ -21,8 +22,8 @@ type userClient struct {
 
 func NewUserClient() *userClient {
 	config := infrastructure.LoadConfig()
-	service := config.Services["productservice"]
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", service.Address, service.ServicePort))
+	service := config.Services["userservice"]
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", service.Address, service.ServicePort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic(err)
 	}

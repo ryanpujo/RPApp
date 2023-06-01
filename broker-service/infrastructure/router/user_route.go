@@ -7,13 +7,13 @@ import (
 )
 
 func UserRoute(contr controller.UserCrudCloser, auth authentication.Authenticator) *gin.Engine {
-	mux := gin.Default()
+	userRoute := mux.Group("/api/user")
 
-	mux.Use(auth.Authenticate())
-	mux.POST("/create", contr.Create)
-	mux.GET("/:id", contr.GetById)
-	mux.GET("/users", contr.GetMany)
-	mux.DELETE("/delete/:id", contr.DeleteById)
-	mux.PATCH("/update", contr.UpdateById)
+	userRoute.Use(auth.Authenticate())
+	userRoute.POST("/create", contr.Create)
+	userRoute.GET("/:id", contr.GetById)
+	userRoute.GET("/users", contr.GetMany)
+	userRoute.DELETE("/delete/:id", contr.DeleteById)
+	userRoute.PATCH("/update", contr.UpdateById)
 	return mux
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/spriigan/broker/infrastructure"
 	"github.com/spriigan/broker/product/product-proto/grpc/product"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type ProductServiceClientCloser interface {
@@ -22,7 +23,7 @@ type productClient struct {
 func NewProductClient() *productClient {
 	config := infrastructure.LoadConfig()
 	service := config.Services["productservice"]
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", service.Address, service.ServicePort))
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", service.Address, service.ServicePort), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		panic(err)
 	}

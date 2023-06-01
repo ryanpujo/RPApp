@@ -2,27 +2,37 @@ package authentication
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
+	er "github.com/spriigan/broker/pkg/error"
 	"github.com/spriigan/broker/response"
+	"github.com/spriigan/broker/user/domain"
 	"google.golang.org/api/option"
 )
 
 type Authentication struct {
-	AuthClient IdTokenVerifier
+	AuthClient AuthClient
 }
 
 type Authenticator interface {
 	Authenticate() gin.HandlerFunc
+	CreateUser(c *gin.Context)
 }
 
 type IdTokenVerifier interface {
 	VerifyIDToken(ctx context.Context, id string) (*auth.Token, error)
+}
+
+type AuthClient interface {
+	IdTokenVerifier
+	CreateUser(ctx context.Context, user *auth.UserToCreate) (*auth.UserRecord, error)
 }
 
 func NewAuthentication() *Authentication {
@@ -40,6 +50,30 @@ func NewAuthentication() *Authentication {
 		log.Fatal(err)
 	}
 	return &Authentication{AuthClient: authClient}
+}
+
+func (a *Authentication) CreateUser(c *gin.Context) {
+	var json domain.UserToCreate
+	if err := c.ShouldBindJSON(&json); err != nil {
+		er.Handle(c, err)
+		return
+	}
+
+	userToCreate := auth.UserToCreate{}
+	userToCreate.DisplayName(fmt.Sprintf("%s %s", json.FirstName, json.LastName))
+	userToCreate.Email(json.Email)
+	userToCreate.EmailVerified(false)
+	userToCreate.Password(json.Password)
+	userToCreate.Disabled(false)
+	ctx, cancel := context.WithTimeout(c, time.Second*2)
+	defer cancel()
+	userRecord, err := a.AuthClient.CreateUser(ctx, &userToCreate)
+	if err != nil {
+		er.Handle(c, err)
+	}
+	var res response.JsonRes
+	res.CreatedUser = *userRecord
+	c.JSON(http.StatusCreated, res)
 }
 
 func (a *Authentication) Authenticate() gin.HandlerFunc {

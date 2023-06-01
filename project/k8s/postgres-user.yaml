@@ -16,10 +16,14 @@ spec:
           image: postgres:15.2-alpine
           envFrom:
             - configMapRef:
-                name: postgres-configmap
+                name: postgres-user-configmap
           volumeMounts:
             - mountPath: "/var/lib/postgres/data"
               name: postgres-data
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
       volumes:
         - name: postgres-data
           persistentVolumeClaim:

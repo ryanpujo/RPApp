@@ -1,2 +1,2 @@
 port: 5002
-dsn: host=postgres-products-srv port=5432 user=ryanpujo password=oke dbname=products sslmode=disable timezone=UTC connect_timeout=20
+dsn: host=postgres-product-srv port=5432 user=ryanpujo password=oke dbname=products sslmode=disable timezone=UTC connect_timeout=20

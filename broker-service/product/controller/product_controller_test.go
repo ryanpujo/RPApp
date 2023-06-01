@@ -29,6 +29,7 @@ var (
 	mockClient *mocks.MockClient
 	mux        *gin.Engine
 	mockAuth   *authmock.MockAuth
+	baseUri    = "/api/product"
 )
 
 func TestMain(m *testing.M) {
@@ -123,7 +124,7 @@ func TestCreate(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, err := http.NewRequest(http.MethodPost, "/create", bytes.NewReader(v.json))
+			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/create", baseUri), bytes.NewReader(v.json))
 			require.NoError(t, err)
 			req.Header.Add("Authorization", "Bearer ksmdksmkdm")
 			rr := httptest.NewRecorder()
@@ -199,7 +200,7 @@ func TestGetById(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("/%d", v.id), nil)
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/%d", baseUri, v.id), nil)
 			req.Header.Add("Authorization", "Bearer ksmdksmkdm")
 			require.NoError(t, err)
 			rr := httptest.NewRecorder()
@@ -264,7 +265,7 @@ func TestGetMany(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, err := http.NewRequest(http.MethodGet, "/", nil)
+			req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/", baseUri), nil)
 			require.NoError(t, err)
 			req.Header.Add("Authorization", "Bearer kdfkdnfk")
 			rr := httptest.NewRecorder()
@@ -329,7 +330,7 @@ func TestDeleteById(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("/delete/%d", v.id), nil)
+			req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/delete/%d", baseUri, v.id), nil)
 			require.NoError(t, err)
 			req.Header.Add("Authorization", "Bearer jndjnjfdj")
 			rr := httptest.NewRecorder()
@@ -415,7 +416,7 @@ func TestUpdateById(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, err := http.NewRequest(http.MethodPatch, "/update", bytes.NewReader(v.json))
+			req, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/update", baseUri), bytes.NewReader(v.json))
 			require.NoError(t, err)
 			req.Header.Add("Authorization", "Bearer fnjkdnntr")
 			rr := httptest.NewRecorder()

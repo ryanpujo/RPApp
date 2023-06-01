@@ -6,12 +6,11 @@ import (
 	"github.com/spriigan/RPApp/controller"
 	"github.com/spriigan/RPApp/repository"
 	"github.com/spriigan/RPApp/service"
-	"github.com/spriigan/RPApp/user-proto/grpc/models"
 	"github.com/spriigan/RPApp/user-proto/userpb"
 )
 
 type Registry interface {
-	NewUserServer() models.UserServiceServer
+	NewUserServer() userpb.UserServiceServer
 }
 
 type registry struct {

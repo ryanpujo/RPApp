@@ -7,13 +7,13 @@ import (
 )
 
 func ProductRoute(contr controller.ProductCrud, auth authentication.Authenticator) *gin.Engine {
-	mux := gin.Default()
+	productRoute := mux.Group("/api/product")
 
-	mux.Use(auth.Authenticate())
-	mux.POST("/create", contr.Create)
-	mux.GET("/:id", contr.GetById)
-	mux.GET("/", contr.GetMany)
-	mux.DELETE("/delete/:id", contr.DeleteById)
-	mux.PATCH("/update", contr.UpdateById)
+	productRoute.Use(auth.Authenticate())
+	productRoute.POST("/create", contr.Create)
+	productRoute.GET("/:id", contr.GetById)
+	productRoute.GET("/", contr.GetMany)
+	productRoute.DELETE("/delete/:id", contr.DeleteById)
+	productRoute.PATCH("/update", contr.UpdateById)
 	return mux
 }

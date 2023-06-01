@@ -1,5 +1,6 @@
 USER_BINARY=userApp
 BROKER_BINARY=brokerApp
+PRODUCT_BINARY=productApp
 
 
 docker_run: user_binary broker_binary
@@ -22,6 +23,11 @@ broker_binary:
 	cd ../broker-service && env GOOS=linux CGO_ENABLED=0 go build -o ${BROKER_BINARY} ./cmd
 	@echo "broker_binary is built and ready to be run"
 
+product_binary:
+	@echo "building product service binary"
+	cd ../product-service && env GOOS=linux CGO_ENABLED=0 go build -o ${PRODUCT_BINARY} ./cmd
+	@echo "product service is built and ready to run"
+
 proto_user:
 	cd ../user-service && protoc --go_out=user-proto --proto_path=proto proto/*.proto --go-grpc_out=user-proto
 	cd ../broker-service && protoc --go_out=user/user-proto --proto_path=user/proto user/proto/*.proto --go-grpc_out=user/user-proto
@@ -41,7 +47,12 @@ broker_image: broker_binary
 	cd ../broker-service && docker build -t ryanpujo/broker-service . && docker push ryanpujo/broker-service
 	@echo "broker image is built"
 
-docker_image: user_image broker_image
+product_image: product_binary
+	@echo "building broker image"
+	cd ../product-service && docker build -t ryanpujo/product-service . && docker push ryanpujo/product-service
+	@echo "broker image is built"
+
+docker_image: user_image broker_image product_image
 
 proto_product:
 	cd ../product-service && protoc --go_out=product-proto --proto_path=proto proto/*.proto --go-grpc_out=product-proto

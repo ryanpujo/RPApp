@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -47,6 +48,7 @@ var (
 	}
 	verr    = "min=3"
 	uriVerr = "gt=0"
+	baseUri = "/api/user"
 )
 
 func TestMain(m *testing.M) {
@@ -120,7 +122,7 @@ func TestCreate(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, err := http.NewRequest(http.MethodPost, "/create", bytes.NewReader(v.json))
+			req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/create", baseUri), bytes.NewReader(v.json))
 			require.NoError(t, err)
 			req.Header.Add("Authorization", "Bearer jdbjrjrjt")
 			rr := httptest.NewRecorder()
@@ -140,7 +142,7 @@ func TestGetById(t *testing.T) {
 		assert  func(t *testing.T, statusCode int, json response.JsonRes)
 	}{
 		"got a user": {
-			uri: "/1",
+			uri: fmt.Sprintf("%s/1", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("GetById", mock.Anything, mock.Anything).Return(userTest, nil).Once()
@@ -153,7 +155,7 @@ func TestGetById(t *testing.T) {
 			},
 		},
 		"failed to get it": {
-			uri: "/1",
+			uri: fmt.Sprintf("%s/1", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("GetById", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
@@ -165,7 +167,7 @@ func TestGetById(t *testing.T) {
 			},
 		},
 		"validation error": {
-			uri: "/0",
+			uri: fmt.Sprintf("%s/0", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 			},
@@ -176,7 +178,7 @@ func TestGetById(t *testing.T) {
 			},
 		},
 		"unauthorized": {
-			uri: "/1",
+			uri: fmt.Sprintf("%s/1", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 			},
@@ -208,7 +210,7 @@ func TestDeleteById(t *testing.T) {
 		assert  func(t *testing.T, statusCode int, json response.JsonRes)
 	}{
 		"user deleted": {
-			uri: "/delete/1",
+			uri: fmt.Sprintf("%s/delete/1", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("DeleteById", mock.Anything, mock.Anything).Return(&emptypb.Empty{}, nil).Once()
@@ -219,7 +221,7 @@ func TestDeleteById(t *testing.T) {
 			},
 		},
 		"failed to delete": {
-			uri: "/delete/1",
+			uri: fmt.Sprintf("%s/delete/1", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("DeleteById", mock.Anything, mock.Anything).Return(&emptypb.Empty{}, errors.New("an error")).Once()
@@ -231,7 +233,7 @@ func TestDeleteById(t *testing.T) {
 			},
 		},
 		"validation error": {
-			uri: "/delete/0",
+			uri: fmt.Sprintf("%s/delete/0", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 			},
@@ -242,7 +244,7 @@ func TestDeleteById(t *testing.T) {
 			},
 		},
 		"unauthorized": {
-			uri: "/delete/1",
+			uri: fmt.Sprintf("%s/delete/1", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 			},
@@ -321,7 +323,7 @@ func TestUpdateById(t *testing.T) {
 		t.Run(k, func(t *testing.T) {
 			v.arrange(t)
 
-			req, err := http.NewRequest(http.MethodPatch, "/update", bytes.NewReader(v.json))
+			req, err := http.NewRequest(http.MethodPatch, fmt.Sprintf("%s/update", baseUri), bytes.NewReader(v.json))
 			require.NoError(t, err)
 			req.Header.Add("Authorization", "Bearer ndjnjf")
 			rr := httptest.NewRecorder()
@@ -344,7 +346,7 @@ func TestGetMany(t *testing.T) {
 		assert  func(t *testing.T, statusCode int, json response.JsonRes)
 	}{
 		"got users": {
-			uri: "/users?page=1&limit=10",
+			uri: fmt.Sprintf("%s/users?page=1&limit=10", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("GetMany", mock.Anything, mock.Anything).Return(users, nil).Once()
@@ -356,7 +358,7 @@ func TestGetMany(t *testing.T) {
 			},
 		},
 		"failed to get users": {
-			uri: "/users?page=1&limit=10",
+			uri: fmt.Sprintf("%s/users?page=1&limit=10", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 				mockClient.On("GetMany", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
@@ -368,7 +370,7 @@ func TestGetMany(t *testing.T) {
 			},
 		},
 		"validation error": {
-			uri: "/users?page=1&limit=0",
+			uri: fmt.Sprintf("%s/users?page=1&limit=0", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(auth.Token{}, nil).Once()
 			},
@@ -379,7 +381,7 @@ func TestGetMany(t *testing.T) {
 			},
 		},
 		"unauthorized": {
-			uri: "/users?page=1&limit=10",
+			uri: fmt.Sprintf("%s/users?page=1&limit=10", baseUri),
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 			},

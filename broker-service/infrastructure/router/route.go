@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spriigan/broker/authentication"
 	"github.com/spriigan/broker/registry"
@@ -8,18 +10,19 @@ import (
 
 type Close func()
 
-func Route() (*gin.Engine, Close) {
-	mux := gin.Default()
+var mux = gin.Default()
 
+func Route() (*gin.Engine, Close) {
+
+	mux.GET("/api/test", func(ctx *gin.Context) {
+		ctx.String(http.StatusOK, "helo")
+	})
 	register := registry.New()
 	appController := register.NewAppController()
-
-	productRoute := mux.Group("/api/product")
-	productRoute.Use(gin.WrapH(ProductRoute(appController.Product, authentication.NewAuthentication())))
-
-	userRoute := mux.Group("/api/user")
-	userRoute.Use(gin.WrapH(UserRoute(appController.User, authentication.NewAuthentication())))
-
+	auth := authentication.NewAuthentication()
+	ProductRoute(appController.Product, auth)
+	UserRoute(appController.User, auth)
+	mux.POST("/api/register", auth.CreateUser)
 	return mux, func() {
 		appController.Close()
 	}

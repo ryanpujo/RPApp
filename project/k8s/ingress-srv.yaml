@@ -10,20 +10,34 @@ spec:
     - host: emporium.com
       http:
         paths:
-          - path: /public/user
+          - path: /api/user/create
             backend:
               service:
                 name: broker-service-srv
                 port:
                   number: 5001
             pathType: Prefix
-          - path: /public/test
+          - path: /api/test
             backend:
               service:
                 name: broker-service-srv
                 port:
                   number: 5001
             pathType: Prefix
+          - path: /api/register
+            pathType: Prefix
+            backend:
+              service:
+                name: broker-service-srv
+                port:
+                  number: 5001
+          - path: /api/product/create
+            pathType: Prefix
+            backend:
+              service:
+                name: broker-service-srv
+                port:
+                  number: 5001
           - path: /?(.*)
             backend:
               service:

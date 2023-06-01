@@ -15,9 +15,9 @@ func main() {
 	productService := service.NewProductService(repo)
 	productController := controller.NewProductController(productService)
 	close, err := app.StartGrpcServer(productController)
-	defer close()
 	if err != nil {
-		defer close()
+		close()
 		panic(err)
 	}
+	defer close()
 }
