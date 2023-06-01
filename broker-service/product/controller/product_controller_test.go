@@ -18,6 +18,7 @@ import (
 	"github.com/spriigan/broker/product/controller"
 	"github.com/spriigan/broker/product/controller/mocks"
 	"github.com/spriigan/broker/product/product-proto/grpc/product"
+	"github.com/spriigan/broker/response"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -38,6 +39,12 @@ func TestMain(m *testing.M) {
 	auth := &authentication.Authentication{AuthClient: mockAuth}
 	mux = router.ProductRoute(productController, auth)
 	os.Exit(m.Run())
+}
+
+func unAuthorizeAssert(t *testing.T, statusCode int, json response.JsonRes) {
+	require.Equal(t, http.StatusUnauthorized, statusCode)
+	require.NotEmpty(t, json.Error)
+	require.Equal(t, "unauthorized", json.Error)
 }
 
 func TestCreate(t *testing.T) {
@@ -63,7 +70,7 @@ func TestCreate(t *testing.T) {
 	testTable := map[string]struct {
 		json    []byte
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data gin.H)
+		assert  func(t *testing.T, statusCode int, data response.JsonRes)
 	}{
 		"product created": {
 			json: jsonReq,
@@ -71,12 +78,12 @@ func TestCreate(t *testing.T) {
 				mockClient.On("CreateProduct", mock.Anything, mock.Anything).Return(&product.CreatedProduct{Name: "pujo"}, nil).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, 201, statusCode)
-				require.Empty(t, data["error"])
-				require.Empty(t, data["errors"])
-				require.NotEmpty(t, data)
-				require.Equal(t, "pujo", data["name"])
+				require.Empty(t, data.Error)
+				require.Empty(t, data.Errors)
+				require.NotEmpty(t, data.Product)
+				require.Equal(t, "pujo", data.Product.Name)
 			},
 		},
 		"vailidation error": {
@@ -84,10 +91,10 @@ func TestCreate(t *testing.T) {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
 				require.NotEmpty(t, data)
-				require.NotEmpty(t, data["errors"])
+				require.NotEmpty(t, data.Errors)
 			},
 		},
 		"failed to create product": {
@@ -96,11 +103,11 @@ func TestCreate(t *testing.T) {
 				mockClient.On("CreateProduct", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusInternalServerError, statusCode)
 				require.NotEmpty(t, data)
-				require.NotEmpty(t, data["error"])
-				require.Equal(t, "an error", data["error"])
+				require.NotEmpty(t, data.Error)
+				require.Equal(t, "an error", data.Error)
 			},
 		},
 		"unauthorized acces": {
@@ -108,11 +115,7 @@ func TestCreate(t *testing.T) {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("unauthorized")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
-				require.Equal(t, http.StatusUnauthorized, statusCode)
-				require.NotEmpty(t, data["error"])
-				require.Equal(t, "unathorized", data["error"])
-			},
+			assert: unAuthorizeAssert,
 		},
 	}
 
@@ -125,9 +128,8 @@ func TestCreate(t *testing.T) {
 			req.Header.Add("Authorization", "Bearer ksmdksmkdm")
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res gin.H
+			var res response.JsonRes
 			_ = json.NewDecoder(rr.Body).Decode(&res)
-			print(res)
 
 			v.assert(t, rr.Code, res)
 		})
@@ -147,7 +149,7 @@ func TestGetById(t *testing.T) {
 	testTable := map[string]struct {
 		id      int
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data gin.H)
+		assert  func(t *testing.T, statusCode int, data response.JsonRes)
 	}{
 		"product found": {
 			id: 1,
@@ -155,12 +157,12 @@ func TestGetById(t *testing.T) {
 				mockClient.On("GetProductById", mock.Anything, mock.Anything).Return(productTest, nil).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusOK, statusCode)
 				require.NotEmpty(t, data)
-				require.Empty(t, data["error"])
-				require.Empty(t, data["errors"])
-				require.Equal(t, productTest.Name, data["name"])
+				require.Empty(t, data.Error)
+				require.Empty(t, data.Errors)
+				require.Equal(t, productTest.Name, data.Product.Name)
 			},
 		},
 		"product not found": {
@@ -169,9 +171,9 @@ func TestGetById(t *testing.T) {
 				mockClient.On("GetProductById", mock.Anything, mock.Anything).Return(nil, status.Error(codes.NotFound, "not found")).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusNotFound, statusCode)
-				require.Equal(t, "not found", data["error"])
+				require.Equal(t, "not found", data.Error)
 			},
 		},
 		"bad uri": {
@@ -179,9 +181,9 @@ func TestGetById(t *testing.T) {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.NotEmpty(t, data["errors"])
+				require.NotEmpty(t, data.Errors)
 			},
 		},
 		"unauthorized": {
@@ -189,11 +191,7 @@ func TestGetById(t *testing.T) {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("unauthorized")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
-				require.Equal(t, http.StatusUnauthorized, statusCode)
-				require.NotEmpty(t, data["error"])
-				require.Equal(t, "unathorized", data["error"])
-			},
+			assert: unAuthorizeAssert,
 		},
 	}
 
@@ -206,7 +204,7 @@ func TestGetById(t *testing.T) {
 			require.NoError(t, err)
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res gin.H
+			var res response.JsonRes
 			json.NewDecoder(rr.Body).Decode(&res)
 
 			v.assert(t, rr.Code, res)
@@ -229,18 +227,18 @@ func TestGetMany(t *testing.T) {
 	}
 	testTable := map[string]struct {
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data gin.H)
+		assert  func(t *testing.T, statusCode int, data response.JsonRes)
 	}{
 		"products retrieved": {
 			arrange: func(t *testing.T) {
 				mockClient.On("GetProducts", mock.Anything, mock.Anything).Return(products, nil).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusOK, statusCode)
-				require.Empty(t, data["error"])
-				require.NotEmpty(t, data["data"])
-				require.Equal(t, len(products.Products), len(data["data"].([]interface{})))
+				require.Empty(t, data.Error)
+				require.NotEmpty(t, data.Products)
+				require.Equal(t, len(products.Products), len(data.Products))
 			},
 		},
 		"failed to acces products": {
@@ -248,21 +246,17 @@ func TestGetMany(t *testing.T) {
 				mockClient.On("GetProducts", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusInternalServerError, statusCode)
-				require.Empty(t, data["data"])
-				require.NotEmpty(t, data["error"])
+				require.Empty(t, data.Products)
+				require.NotEmpty(t, data.Error)
 			},
 		},
 		"unauthorized": {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
-				require.Equal(t, http.StatusUnauthorized, statusCode)
-				require.NotEmpty(t, data["error"])
-				require.Equal(t, "unathorized", data["error"])
-			},
+			assert: unAuthorizeAssert,
 		},
 	}
 
@@ -275,7 +269,7 @@ func TestGetMany(t *testing.T) {
 			req.Header.Add("Authorization", "Bearer kdfkdnfk")
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res gin.H
+			var res response.JsonRes
 			json.NewDecoder(rr.Body).Decode(&res)
 
 			v.assert(t, rr.Code, res)
@@ -287,7 +281,7 @@ func TestDeleteById(t *testing.T) {
 	testTable := map[string]struct {
 		id      int
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data gin.H)
+		assert  func(t *testing.T, statusCode int, data response.JsonRes)
 	}{
 		"product deleted": {
 			id: 1,
@@ -295,10 +289,10 @@ func TestDeleteById(t *testing.T) {
 				mockClient.On("DeleteProduct", mock.Anything, mock.Anything).Return(nil, nil).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusOK, statusCode)
-				require.Empty(t, data["error"])
-				require.Empty(t, data["errors"])
+				require.Empty(t, data.Error)
+				require.Empty(t, data.Errors)
 				require.Empty(t, data)
 			},
 		},
@@ -308,9 +302,9 @@ func TestDeleteById(t *testing.T) {
 				mockClient.On("DeleteProduct", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusInternalServerError, statusCode)
-				require.NotEmpty(t, data["error"])
+				require.NotEmpty(t, data.Error)
 			},
 		},
 		"validation error": {
@@ -318,20 +312,16 @@ func TestDeleteById(t *testing.T) {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.NotEmpty(t, data["errors"])
+				require.NotEmpty(t, data.Errors)
 			},
 		},
 		"unauthoriza": {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
-				require.Equal(t, http.StatusUnauthorized, statusCode)
-				require.NotEmpty(t, data["error"])
-				require.Equal(t, "unathorized", data["error"])
-			},
+			assert: unAuthorizeAssert,
 		},
 	}
 
@@ -344,7 +334,7 @@ func TestDeleteById(t *testing.T) {
 			req.Header.Add("Authorization", "Bearer jndjnjfdj")
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res gin.H
+			var res response.JsonRes
 			json.NewDecoder(rr.Body).Decode(&res)
 
 			v.assert(t, rr.Code, res)
@@ -378,7 +368,7 @@ func TestUpdateById(t *testing.T) {
 	testTable := map[string]struct {
 		json    []byte
 		arrange func(t *testing.T)
-		assert  func(t *testing.T, statusCode int, data gin.H)
+		assert  func(t *testing.T, statusCode int, data response.JsonRes)
 	}{
 		"product updated": {
 			json: jsonReq,
@@ -386,11 +376,9 @@ func TestUpdateById(t *testing.T) {
 				mockClient.On("UpdateProduct", mock.Anything, mock.Anything).Return(nil, nil).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusOK, statusCode)
 				require.Empty(t, data)
-				require.Empty(t, data["error"])
-				require.Empty(t, data["errors"])
 			},
 		},
 		"failed update": {
@@ -399,10 +387,10 @@ func TestUpdateById(t *testing.T) {
 				mockClient.On("UpdateProduct", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusInternalServerError, statusCode)
-				require.NotEmpty(t, data["error"])
-				require.Equal(t, "an error", data["error"])
+				require.NotEmpty(t, data.Error)
+				require.Equal(t, "an error", data.Error)
 			},
 		},
 		"validation error": {
@@ -410,20 +398,16 @@ func TestUpdateById(t *testing.T) {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(&auth.Token{}, nil).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
+			assert: func(t *testing.T, statusCode int, data response.JsonRes) {
 				require.Equal(t, http.StatusBadRequest, statusCode)
-				require.NotEmpty(t, data["errors"])
+				require.NotEmpty(t, data.Errors)
 			},
 		},
 		"unauthorized": {
 			arrange: func(t *testing.T) {
 				mockAuth.On("VerifyIDToken", mock.Anything, mock.Anything).Return(nil, errors.New("an error")).Once()
 			},
-			assert: func(t *testing.T, statusCode int, data gin.H) {
-				require.Equal(t, http.StatusUnauthorized, statusCode)
-				require.NotEmpty(t, data["error"])
-				require.Equal(t, "unathorized", data["error"])
-			},
+			assert: unAuthorizeAssert,
 		},
 	}
 
@@ -436,7 +420,7 @@ func TestUpdateById(t *testing.T) {
 			req.Header.Add("Authorization", "Bearer fnjkdnntr")
 			rr := httptest.NewRecorder()
 			mux.ServeHTTP(rr, req)
-			var res gin.H
+			var res response.JsonRes
 			json.NewDecoder(rr.Body).Decode(&res)
 
 			v.assert(t, rr.Code, res)
