@@ -17,6 +17,13 @@ spec:
                 port:
                   number: 5001
             pathType: Prefix
+          - path: /api/user/users
+            backend:
+              service:
+                name: broker-service-srv
+                port:
+                  number: 5001
+            pathType: Prefix
           - path: /api/test
             backend:
               service:

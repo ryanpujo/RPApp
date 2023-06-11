@@ -1,1 +1,2 @@
 postgres-configmap.yaml
+postgres-secret.yaml

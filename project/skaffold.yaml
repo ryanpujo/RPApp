@@ -12,3 +12,5 @@ build:
       context: ../broker-service
     - image: ryanpujo/product-service
       context: ../product-service
+    - image: ryanpujo/postgres
+      context: ../postgres-user

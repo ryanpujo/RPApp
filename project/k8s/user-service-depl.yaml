@@ -17,10 +17,10 @@ spec:
           image: ryanpujo/user-service
           resources:
             requests:
-              memory: "128Mi"
+              memory: "64Mi"
               cpu: "250m"
             limits:
-              memory: "512Mi"
+              memory: "128Mi"
               cpu: "500m"
 ---
 apiVersion: v1

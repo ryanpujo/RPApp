@@ -13,10 +13,20 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:15.2-alpine
-          envFrom:
-            - configMapRef:
-                name: postgres-user-configmap
+          image: ryanpujo/postgres
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: password
+            - name: POSTGRES_DB
+              value: users
           volumeMounts:
             - mountPath: "/var/lib/postgres/data"
               name: postgres-data
