@@ -11,6 +11,9 @@
 		},
 		{
 			"path": "product-service"
+		},
+		{
+			"path": "postgres-user"
 		}
 	],
 	"settings": {}
