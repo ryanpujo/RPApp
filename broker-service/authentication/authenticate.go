@@ -8,13 +8,12 @@ import (
 	"strings"
 	"time"
 
-	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/spriigan/broker/firebaseapp"
 	er "github.com/spriigan/broker/pkg/error"
 	"github.com/spriigan/broker/response"
 	"github.com/spriigan/broker/user/domain"
-	"google.golang.org/api/option"
 )
 
 type Authentication struct {
@@ -36,14 +35,7 @@ type AuthClient interface {
 }
 
 func NewAuthentication() *Authentication {
-	config := firebase.Config{
-		ProjectID: "orbit-app-145b9",
-	}
-	opt := option.WithCredentialsFile("./orbit-app-145b9-firebase-adminsdk-7ycvp-6ab97f8272.json")
-	app, err := firebase.NewApp(context.Background(), &config, opt)
-	if err != nil {
-		log.Fatal(err)
-	}
+	app := firebaseapp.New()
 
 	authClient, err := app.Auth(context.Background())
 	if err != nil {

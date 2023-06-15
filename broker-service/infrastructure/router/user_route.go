@@ -10,6 +10,7 @@ func UserRoute(contr controller.UserCrudCloser, auth authentication.Authenticato
 	userRoute := mux.Group("/api/user")
 
 	userRoute.POST("/create", contr.Create)
+	userRoute.POST("/upload", contr.UploadImage)
 	userRoute.GET("/:id", contr.GetById)
 	userRoute.GET("/users", contr.GetMany)
 	userRoute.DELETE("/delete/:id", contr.DeleteById)

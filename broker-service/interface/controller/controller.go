@@ -21,6 +21,7 @@ type SimpleCrud interface {
 
 type UserCrudCloser interface {
 	SimpleCrud
+	UploadImage(c *gin.Context)
 	io.Closer
 }
 

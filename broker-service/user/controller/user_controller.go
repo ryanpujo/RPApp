@@ -3,10 +3,20 @@ package controller
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"io"
 	"net/http"
+	"path/filepath"
+	"strings"
 	"time"
 
+	"firebase.google.com/go/storage"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	er "github.com/spriigan/broker/pkg/error"
 	"github.com/spriigan/broker/response"
 	"github.com/spriigan/broker/user/domain"
@@ -15,11 +25,12 @@ import (
 )
 
 type userController struct {
-	c client.UserClientCloser
+	c       client.UserClientCloser
+	storage *storage.Client
 }
 
-func NewUserController(c client.UserClientCloser) *userController {
-	return &userController{c: c}
+func NewUserController(c client.UserClientCloser, s *storage.Client) *userController {
+	return &userController{c: c, storage: s}
 }
 
 func (u userController) Create(c *gin.Context) {
@@ -174,6 +185,67 @@ func (u userController) GetMany(c *gin.Context) {
 	res.Users = users
 
 	c.JSON(http.StatusOK, res)
+}
+
+func (u userController) UploadImage(c *gin.Context) {
+	f, err := c.FormFile("image")
+	if err != nil {
+		er.Handle(c, errors.New("bucket"))
+		return
+	}
+
+	file, err := f.Open()
+	if err != nil {
+
+		er.Handle(c, err)
+		return
+	}
+	defer file.Close()
+
+	buf, err := io.ReadAll(file)
+	if err != nil {
+		er.Handle(c, err)
+		return
+	}
+
+	bucket, err := u.storage.DefaultBucket()
+	if err != nil {
+		er.Handle(c, err)
+		return
+	}
+	ctx, cancel := context.WithTimeout(c, time.Second*5)
+	defer cancel()
+	id := uuid.New()
+	ext := filepath.Ext(f.Filename)
+	obj := bucket.Object(fmt.Sprintf("pp/%s.%s", id.String(), ext))
+	wc := obj.NewWriter(ctx)
+	contentType := http.DetectContentType(buf)
+	wc.ContentType = contentType
+	if !strings.HasPrefix(contentType, "image/") {
+		// handle error - file is not an image
+		er.Handle(c, errors.New("unsupported image file"))
+		return
+	}
+
+	if _, err := wc.Write(buf); err != nil {
+		er.Handle(c, err)
+		return
+	}
+
+	if err := wc.Close(); err != nil {
+		er.Handle(c, err)
+		return
+	}
+
+	attrs, err := obj.Attrs(ctx)
+	if err != nil {
+		er.Handle(c, fmt.Errorf("got error: %s", err))
+		return
+	}
+	var res response.JsonRes
+	res.Url = attrs.MediaLink
+	c.JSON(http.StatusOK, res)
+
 }
 
 func (u userController) Close() error {

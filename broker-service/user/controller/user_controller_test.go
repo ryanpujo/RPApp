@@ -2,14 +2,19 @@ package controller_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
+	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/spriigan/broker/authentication"
@@ -22,6 +27,7 @@ import (
 	"github.com/spriigan/broker/user/user-proto/userpb"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/api/option"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -53,8 +59,21 @@ var (
 
 func TestMain(m *testing.M) {
 	mockAuth = new(authmock.MockAuth)
+	config := firebase.Config{
+		ProjectID:     "orbit-app-145b9",
+		StorageBucket: "orbit-app-145b9.appspot.com",
+	}
+	opt := option.WithCredentialsFile("./testdata/orbit-app-145b9-firebase-adminsdk-7ycvp-6ab97f8272.json")
+	app, err := firebase.NewApp(context.Background(), &config, opt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	storage, err := app.Storage(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 	mockClient = new(mocks.MockClient)
-	userController := controller.NewUserController(mockClient)
+	userController := controller.NewUserController(mockClient, storage)
 	mux = router.UserRoute(userController, &authentication.Authentication{AuthClient: mockAuth})
 	os.Exit(m.Run())
 }
@@ -402,6 +421,52 @@ func TestGetMany(t *testing.T) {
 			json.NewDecoder(rr.Body).Decode(&res)
 
 			v.assert(t, rr.Code, res)
+		})
+	}
+}
+
+func TestUploadImage(t *testing.T) {
+	testCases := map[string]struct {
+		image  string
+		assert func(t *testing.T, json response.JsonRes, statusCode int)
+	}{
+		"image uploaded": {
+			image: "./testdata/scout.png",
+			assert: func(t *testing.T, json response.JsonRes, statusCode int) {
+				require.Equal(t, http.StatusOK, statusCode)
+				require.NotEmpty(t, json.Url)
+			},
+		},
+	}
+	for k, v := range testCases {
+		t.Run(k, func(t *testing.T) {
+			var buf bytes.Buffer
+			writer := multipart.NewWriter(&buf)
+			part, err := writer.CreateFormFile("image", v.image)
+			require.NoError(t, err)
+			file, err := os.Open(v.image)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer file.Close()
+			if _, err = io.Copy(part, file); err != nil {
+				t.Fatal(err)
+			}
+			writer.Close()
+			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("%s/upload", baseUri), &buf)
+			req.Header.Set("Content-Type", writer.FormDataContentType())
+			req.Header.Add("Authorization", "Bearer jdnjdnfjng")
+
+			// Create a new HTTP recorder to capture the response
+			rr := httptest.NewRecorder()
+
+			// Call the handler function and pass in the HTTP request and response
+			mux.ServeHTTP(rr, req)
+
+			var res response.JsonRes
+			json.NewDecoder(rr.Body).Decode(&res)
+
+			v.assert(t, res, rr.Code)
 		})
 	}
 }

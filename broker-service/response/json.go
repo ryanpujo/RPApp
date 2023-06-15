@@ -14,4 +14,5 @@ type JsonRes struct {
 	Products    []pr.Product      `json:"products,omitempty"`
 	Error       string            `json:"error,omitempty"`
 	Errors      map[string]string `json:"errors,omitempty"`
+	Url         string            `json:"url,omitempty"`
 }
